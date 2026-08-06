@@ -1,0 +1,10 @@
+{
+  "description": "Capture your MCM purchase story and receive a personalized digital artwork certificate, along with tailored product recommendations for a luxury experience.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

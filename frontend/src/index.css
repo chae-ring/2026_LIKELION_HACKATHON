@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --cream: #F5EDD8;
+  --cream-mid: #EAD9BC;
+  --cream-dark: #D9C9A8;
+  --brown: #2E1A0E;
+  --brown-mid: #6B3F22;
+  --brown-light: #A8693E;
+  --gold: #B8924A;
+  --gold-light: #D4AE72;
+  --black: #0D0905;
+  --warm-white: #FDFAF4;
+  --border: rgba(46,26,14,0.15);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: var(--cream);
+  font-family: 'Outfit', sans-serif;
+  color: var(--brown);
+  margin: 0;
+}
+
+.font-display {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Scrollbar hide */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+
+/* Flip card */
+.flip-card { perspective: 1000px; }
+.flip-card-inner {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  position: relative;
+}
+.flip-card-inner.flipped { transform: rotateY(180deg); }
+.flip-card-front, .flip-card-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-card-back { transform: rotateY(180deg); }
+
+/* Skeleton pulse */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.skeleton { animation: skeleton-pulse 1.8s ease-in-out infinite; }
+
+/* Visetos SVG pattern */
+.visetos-bg {
+  background-color: var(--brown);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cg fill='none' stroke='%23B8924A' stroke-width='0.6' opacity='0.35'%3E%3Ccircle cx='30' cy='30' r='8'/%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3Cline x1='30' y1='18' x2='30' y2='42'/%3E%3Cline x1='18' y1='30' x2='42' y2='30'/%3E%3Cline x1='21.5' y1='21.5' x2='38.5' y2='38.5'/%3E%3Cline x1='38.5' y1='21.5' x2='21.5' y2='38.5'/%3E%3Ccircle cx='0' cy='0' r='3'/%3E%3Ccircle cx='60' cy='0' r='3'/%3E%3Ccircle cx='0' cy='60' r='3'/%3E%3Ccircle cx='60' cy='60' r='3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.45s ease both; }
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin-slow { animation: spin-slow 3s linear infinite; }
