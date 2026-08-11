@@ -24,7 +24,7 @@ public class SecurityConfig {
                                 )
                                 .permitAll()
                                 .anyRequest()
-                                .permitAll()
+                                .permitAll() // 현재 전체 허용, 나중에 JWT FILLTER 적용 후 수정
                 );
 
         return http.build();
