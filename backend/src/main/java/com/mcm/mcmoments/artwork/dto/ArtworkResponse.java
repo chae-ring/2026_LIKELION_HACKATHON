@@ -13,11 +13,16 @@ public record ArtworkResponse(
         LocalDateTime createdAt
 ) {
     public static ArtworkResponse from(ArtworkCertificate artwork) {
+        String artworkUrl = artwork.getArtworkUrl();
+        if (artwork.getStatus() == ArtworkStatus.COMPLETED && artworkUrl != null && !artworkUrl.isBlank()) {
+            artworkUrl = "/api/v1/artworks/" + artwork.getId() + "/image";
+        }
+
         return new ArtworkResponse(
                 artwork.getId(),
                 artwork.getUserProduct().getId(),
                 artwork.getStatus(),
-                artwork.getArtworkUrl(),
+                artworkUrl,
                 artwork.getCreatedAt()
         );
     }

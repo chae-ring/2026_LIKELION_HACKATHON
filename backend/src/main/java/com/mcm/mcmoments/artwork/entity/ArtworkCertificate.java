@@ -33,7 +33,7 @@ public class ArtworkCertificate {
     @JoinColumn(name = "user_product_id", nullable = false)
     private UserProduct userProduct;
 
-    @Column(name = "artwork_url", length = 500)
+    @Column(name = "artwork_url", columnDefinition = "TEXT")
     private String artworkUrl;
 
     @Column(columnDefinition = "TEXT")

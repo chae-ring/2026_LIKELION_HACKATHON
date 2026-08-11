@@ -5,12 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientResponseException;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
@@ -24,32 +22,24 @@ public class OpenAiArtworkImageGenerator implements ArtworkImageGenerator {
     public OpenAiArtworkImageGenerator(
             @Value("${openai.api-key:}") String apiKey
     ) {
-        this.restClient = RestClient.builder().build();
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(120000);
+
+        this.restClient = RestClient.builder()
+                .requestFactory(factory)
+                .build();
         this.apiKey = apiKey;
     }
 
     @Override
     public String generate(String prompt) {
         if (apiKey == null || apiKey.isBlank()) {
-            log.warn("OpenAI API key is missing. Falling back to default mock artwork.");
-            return getFallbackArtworkUrl(prompt);
+            throw new IllegalStateException("OpenAI API key is missing");
         }
 
-        try {
-            log.info("Attempting DALL-E 3 artwork generation with prompt: {}", prompt);
-            return callDalleApi("dall-e-3", prompt, "1024x1024");
-        } catch (RestClientResponseException e) {
-            log.warn("DALL-E 3 call failed with status [{}]: {}. Trying DALL-E 2...", e.getStatusCode(), e.getResponseBodyAsString());
-            try {
-                return callDalleApi("dall-e-2", prompt, "1024x1024");
-            } catch (Exception ex) {
-                log.error("DALL-E 2 call also failed. (OpenAI account tier/credits issue). Using fallback artwork URL.", ex);
-                return getFallbackArtworkUrl(prompt);
-            }
-        } catch (Exception e) {
-            log.error("Failed to generate OpenAI artwork image. Using fallback artwork URL.", e);
-            return getFallbackArtworkUrl(prompt);
-        }
+        log.info("Attempting gpt-image-2 artwork generation with prompt: {}", prompt);
+        return callDalleApi("gpt-image-2", prompt, "1024x1024");
     }
 
     private String callDalleApi(String model, String prompt, String size) {
@@ -64,16 +54,31 @@ public class OpenAiArtworkImageGenerator implements ArtworkImageGenerator {
                 .body(DalleResponse.class);
 
         if (response != null && response.data() != null && !response.data().isEmpty()) {
-            String imageUrl = response.data().get(0).url();
-            log.info("Successfully generated DALL-E [{}] artwork image: {}", model, imageUrl);
-            return imageUrl;
+            String imageReference = extractImageReference(response);
+            log.info("Successfully generated OpenAI [{}] artwork image: {}", model, imageReference);
+            return imageReference;
         } else {
             throw new IllegalStateException("No image URL received from OpenAI API");
         }
     }
 
-    private String getFallbackArtworkUrl(String prompt) {
-        return "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=1080";
+    private String extractImageReference(DalleResponse response) {
+        DalleData image = response.data().get(0);
+
+        if (image.url() != null && !image.url().isBlank()) {
+            return image.url();
+        }
+
+        if (image.b64_json() != null && !image.b64_json().isBlank()) {
+            String mimeType = switch (response.output_format() == null ? "png" : response.output_format().toLowerCase()) {
+                case "jpeg", "jpg" -> "image/jpeg";
+                case "webp" -> "image/webp";
+                default -> "image/png";
+            };
+            return "data:" + mimeType + ";base64," + image.b64_json();
+        }
+
+        throw new IllegalStateException("No image content received from OpenAI API");
     }
 
     private record DalleRequest(
@@ -85,10 +90,12 @@ public class OpenAiArtworkImageGenerator implements ArtworkImageGenerator {
 
     private record DalleResponse(
             long created,
+            String output_format,
             List<DalleData> data
     ) {}
 
     private record DalleData(
+            String b64_json,
             String url,
             String revised_prompt
     ) {}
