@@ -1,8 +1,9 @@
 package com.mcm.mcmoments.auth.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mcm.mcmoments.auth.dto.GoogleCallbackResponse;
 import com.mcm.mcmoments.auth.dto.GoogleLoginResponse;
+import com.mcm.mcmoments.auth.dto.GoogleTokenResponse;
+import com.mcm.mcmoments.auth.dto.GoogleUserResponse;
 import com.mcm.mcmoments.global.jwt.JwtProvider;
 import com.mcm.mcmoments.user.entity.User;
 import com.mcm.mcmoments.user.repository.UserRepository;
@@ -59,16 +60,16 @@ public class GoogleAuthService {
 
         GoogleUserResponse googleUser =
                 requestGoogleUser(
-                        tokenResponse.accessToken()
+                        tokenResponse.getAccessToken()
                 );
 
         User user = userRepository
-                .findByGoogleId(googleUser.id())
+                .findByGoogleId(googleUser.getId())
                 .orElseGet(() ->
                         userRepository.save(
                                 User.create(
-                                        googleUser.id(),
-                                        googleUser.email()
+                                        googleUser.getId(),
+                                        googleUser.getEmail()
                                 )
                         )
                 );
@@ -128,17 +129,5 @@ public class GoogleAuthService {
                 )
                 .retrieve()
                 .body(GoogleUserResponse.class);
-    }
-
-    private record GoogleTokenResponse(
-            @JsonProperty("access_token")
-            String accessToken
-    ) {
-    }
-
-    private record GoogleUserResponse(
-            String id,
-            String email
-    ) {
     }
 }
