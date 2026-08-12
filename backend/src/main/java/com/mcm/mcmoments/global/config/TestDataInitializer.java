@@ -3,6 +3,7 @@ package com.mcm.mcmoments.global.config;
 import com.mcm.mcmoments.product.entity.Product;
 import com.mcm.mcmoments.product.entity.ProductSerial;
 import com.mcm.mcmoments.product.entity.UserProduct;
+import com.mcm.mcmoments.recommendation.entity.ProductRecommendation;
 import com.mcm.mcmoments.story.entity.PurchaseStory;
 import com.mcm.mcmoments.user.entity.User;
 import jakarta.persistence.EntityManager;
@@ -33,15 +34,15 @@ public class TestDataInitializer implements CommandLineRunner {
             return;
         }
 
-        log.info("Initializing local test sample data (Product 1 & Product 2)...");
+        log.info("Initializing local test sample data (Products & Recommendations)...");
 
-        // 1번 샘플 유저 & 제품
+        // 1번 샘플 유저 & 제품 (Stark Backpack)
         User user1 = User.create("google-12345", "user1@gmail.com");
         em.persist(user1);
 
         Product product1 = Product.create(
                 "Stark Backpack",
-                "Visetos",
+                "Visetos Monogram",
                 "Cognac",
                 "Backpack",
                 "2025 S/S",
@@ -65,16 +66,16 @@ public class TestDataInitializer implements CommandLineRunner {
         em.persist(story1);
 
 
-        // 2번 샘플 유저 & 제품 (새로운 감정 스토리 테스트용)
+        // 2번 샘플 유저 & 제품 (Klara Crossbody Bag)
         User user2 = User.create("google-67890", "user2@gmail.com");
         em.persist(user2);
 
         Product product2 = Product.create(
-                "Klara Crossbody Bag",
+                "Klara Crossbody",
                 "Visetos Monogram",
                 "Deep Cognac & Gold",
                 "Crossbody Bag",
-                "2025 F/W",
+                "2025 S/S",
                 "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1080",
                 "https://example.com/products/2",
                 24,
@@ -94,6 +95,46 @@ public class TestDataInitializer implements CommandLineRunner {
         );
         em.persist(story2);
 
-        log.info("Successfully initialized local test sample data! UserProduct ID 1 & 2 ready.");
+
+        // 3번 & 4번 추천 전용 상품 데이터
+        Product product3 = Product.create(
+                "Aren Backpack Small",
+                "Visetos Monogram",
+                "Cognac",
+                "Backpack",
+                "2025 S/S",
+                "https://images.unsplash.com/photo-1544816155-12df9643f363?w=1080",
+                "https://example.com/products/3",
+                24,
+                true
+        );
+        em.persist(product3);
+
+        Product product4 = Product.create(
+                "Klara Monogram Tote",
+                "Visetos Monogram",
+                "Black",
+                "Tote Bag",
+                "2025 F/W",
+                "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1080",
+                "https://example.com/products/4",
+                24,
+                true
+        );
+        em.persist(product4);
+
+
+        // 추천 상품 매핑 (Product 1 -> Product 3, Product 2)
+        ProductRecommendation rec1 = ProductRecommendation.create(product1, product3, 1);
+        em.persist(rec1);
+
+        ProductRecommendation rec2 = ProductRecommendation.create(product1, product2, 2);
+        em.persist(rec2);
+
+        // 추천 상품 매핑 (Product 2 -> Product 4)
+        ProductRecommendation rec3 = ProductRecommendation.create(product2, product4, 1);
+        em.persist(rec3);
+
+        log.info("Successfully initialized local test sample data with recommendations! UserProduct ID 1 & 2 ready.");
     }
 }

@@ -1,0 +1,4 @@
+# Local secrets and developer-specific configuration
+backend/src/main/resources/application-local.yml
+.env
+
