@@ -1,6 +1,11 @@
 package com.mcm.mcmoments.auth.dto;
 
-public record GoogleLoginResponse(
-        String redirectUrl
-) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class GoogleLoginResponse {
+
+    private String redirectUrl;
 }
