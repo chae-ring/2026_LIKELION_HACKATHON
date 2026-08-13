@@ -95,46 +95,6 @@ public class TestDataInitializer implements CommandLineRunner {
         );
         em.persist(story2);
 
-
-        // 3번 & 4번 추천 전용 상품 데이터
-        Product product3 = Product.create(
-                "Aren Backpack Small",
-                "Visetos Monogram",
-                "Cognac",
-                "Backpack",
-                "2025 S/S",
-                "https://images.unsplash.com/photo-1544816155-12df9643f363?w=1080",
-                "https://example.com/products/3",
-                24,
-                true
-        );
-        em.persist(product3);
-
-        Product product4 = Product.create(
-                "Klara Monogram Tote",
-                "Visetos Monogram",
-                "Black",
-                "Tote Bag",
-                "2025 F/W",
-                "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1080",
-                "https://example.com/products/4",
-                24,
-                true
-        );
-        em.persist(product4);
-
-
-        // 추천 상품 매핑 (Product 1 -> Product 3, Product 2)
-        ProductRecommendation rec1 = ProductRecommendation.create(product1, product3, 1);
-        em.persist(rec1);
-
-        ProductRecommendation rec2 = ProductRecommendation.create(product1, product2, 2);
-        em.persist(rec2);
-
-        // 추천 상품 매핑 (Product 2 -> Product 4)
-        ProductRecommendation rec3 = ProductRecommendation.create(product2, product4, 1);
-        em.persist(rec3);
-
-        log.info("Successfully initialized local test sample data with recommendations! UserProduct ID 1 & 2 ready.");
+        log.info("Successfully initialized local test sample data (User, Collection only)!");
     }
 }
