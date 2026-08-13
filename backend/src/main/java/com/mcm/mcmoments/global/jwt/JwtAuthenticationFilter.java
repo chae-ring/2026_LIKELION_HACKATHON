@@ -1,7 +1,5 @@
 package com.mcm.mcmoments.global.jwt;
 
-import com.mcm.mcmoments.user.entity.User;
-import com.mcm.mcmoments.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +18,6 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
@@ -29,44 +26,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader("Authorization");
+        String authorizationHeader =
+                request.getHeader("Authorization");
 
-        // Authorization 헤더가 없거나 Bearer 형식이 아니면 그냥 다음 필터로
-        if (authorizationHeader == null ||
-                !authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader != null
+                && authorizationHeader.startsWith("Bearer ")) {
 
-            filterChain.doFilter(request, response);
-            return;
-        }
+            String token = authorizationHeader.substring(7);
 
-        // "Bearer " 제거하고 JWT만 추출
-        String token = authorizationHeader.substring(7);
-
-        try {
-            // JWT 안에 저장한 userId 가져오기
-            Long userId = jwtProvider.getUserId(token);
-
-            // DB에서 사용자 조회
-            User user = userRepository.findById(userId)
-                    .orElse(null);
-
-            if (user != null) {
+            try {
+                Long userId = jwtProvider.getUserId(token);
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                user,
+                                userId,
                                 null,
                                 Collections.emptyList()
                         );
 
-                SecurityContextHolder
-                        .getContext()
+                SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
-            }
 
-        } catch (Exception e) {
-            // 토큰이 잘못됐거나 만료된 경우
-            // 인증 없이 다음 필터로 넘김
+            } catch (Exception ignored) { // 토큰 검증 실패 시 무시하고 다음 필터로 진행, 추후 인증이 필요한 API를 authenticated()로 변경할 예정
+            }
         }
 
         filterChain.doFilter(request, response);

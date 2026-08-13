@@ -1,7 +1,5 @@
 package com.mcm.mcmoments.global.config;
 
-import com.mcm.mcmoments.auth.handler.OAuth2SuccessHandler;
-import com.mcm.mcmoments.auth.service.CustomOAuth2UserService;
 import com.mcm.mcmoments.global.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,10 +14,6 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private final CustomOAuth2UserService customOAuth2UserService;
-
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
-
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http
@@ -30,26 +24,10 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth ->
                         auth
-                                .requestMatchers(
-                                        "/api/v1/auth/**",
-                                        "/oauth2/**",
-                                        "/login/**"
-                                )
+                                .requestMatchers("/api/v1/auth/**")
                                 .permitAll()
                                 .anyRequest()
-                                .permitAll() // 나중에 authenticated()로 변경
-                )
-
-                // Google OAuth2 로그인
-                .oauth2Login(oauth -> oauth
-
-                        // Google 사용자 정보 받은 뒤 실행
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
-
-                        // 로그인 최종 성공 후 실행
-                        .successHandler(oAuth2SuccessHandler)
+                                .permitAll() //전체허용, 나중에 인증 필요시 authenticated()로 변경
                 )
 
                 .addFilterBefore(

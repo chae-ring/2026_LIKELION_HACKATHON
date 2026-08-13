@@ -1,5 +1,6 @@
 import { useState } from "react"
 import HomeScreen from "./screens/HomeScreen"
+import LoginScreen from "./screens/LoginScreen"
 import RecommendationsScreen from "./screens/RecommendationsScreen"
 import SplashScreen from "./screens/SplashScreen"
 import CollectionDetailScreen from "./screens/collection/CollectionDetailScreen"
@@ -11,6 +12,7 @@ import type { Certificate, Emotion, Product, Screen } from "./types"
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [screen, setScreen] = useState<Screen>("home")
   const [product, setProduct] = useState<Product | null>(null)
   const [story, setStory] = useState("")
@@ -33,7 +35,10 @@ export default function App() {
           overflow: "hidden",
         }}
       >
-        {screen === "home" && (
+        {!isAuthenticated && (
+          <LoginScreen onLogin={() => setIsAuthenticated(true)} />
+        )}
+        {isAuthenticated && screen === "home" && (
           <HomeScreen
             onStart={() => go("step1")}
             onCollection={() => go("collection")}
