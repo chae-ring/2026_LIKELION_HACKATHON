@@ -1,5 +1,6 @@
 package com.mcm.mcmoments.collection.controller;
 
+import com.mcm.mcmoments.collection.dto.AftercareResponse;
 import com.mcm.mcmoments.collection.dto.CollectionDetailResponse;
 import com.mcm.mcmoments.collection.dto.CollectionListResponse;
 import com.mcm.mcmoments.collection.service.CollectionService;
@@ -49,6 +50,22 @@ public class CollectionController {
 
         CollectionDetailResponse response =
                 collectionService.getCollectionDetail(artworkId, userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 로그인 사용자가 등록한 상품의 보증 정보와 카테고리별 관리 팁을 조회합니다.
+     */
+    @GetMapping("/user-products/{userProductId}/aftercare")
+    public ResponseEntity<AftercareResponse> getAftercare(
+            @PathVariable("userProductId") Long userProductId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+
+        AftercareResponse response =
+                collectionService.getAftercare(userProductId, userId);
 
         return ResponseEntity.ok(response);
     }

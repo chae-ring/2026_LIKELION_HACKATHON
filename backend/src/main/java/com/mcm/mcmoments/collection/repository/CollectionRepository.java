@@ -1,6 +1,9 @@
 package com.mcm.mcmoments.collection.repository;
 
 import com.mcm.mcmoments.artwork.entity.ArtworkCertificate;
+import com.mcm.mcmoments.care.entity.CareGuide;
+import com.mcm.mcmoments.care.entity.CareGuideItem;
+import com.mcm.mcmoments.product.entity.UserProduct;
 import com.mcm.mcmoments.story.entity.PurchaseStory;
 import com.mcm.mcmoments.story.entity.StoryEmotion;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -73,5 +76,46 @@ public interface CollectionRepository
             """)
     List<StoryEmotion> findEmotionsByStoryIdOrderByIdAsc(
             @Param("storyId") Long storyId
+    );
+
+    /**
+     * 상품 ID와 사용자 ID를 함께 검사하고 보증 계산에 필요한 Product까지 한 번에 조회합니다.
+     */
+    @Query("""
+            select userProduct
+            from UserProduct userProduct
+            join fetch userProduct.serial serial
+            join fetch serial.product product
+            where userProduct.id = :userProductId
+              and userProduct.user.id = :userId
+            """)
+    Optional<UserProduct> findUserProductByIdAndUserId(
+            @Param("userProductId") Long userProductId,
+            @Param("userId") Long userId
+    );
+
+    /**
+     * Product와 CareGuide는 직접 연결되지 않아 동일한 category 문자열로 찾습니다.
+     */
+    @Query("""
+            select careGuide
+            from CareGuide careGuide
+            where careGuide.category = :category
+            """)
+    Optional<CareGuide> findCareGuideByCategory(
+            @Param("category") String category
+    );
+
+    /**
+     * 표시 순서가 같을 때도 결과가 일정하도록 ID를 두 번째 정렬 기준으로 사용합니다.
+     */
+    @Query("""
+            select careGuideItem
+            from CareGuideItem careGuideItem
+            where careGuideItem.careGuide.id = :careGuideId
+            order by careGuideItem.displayOrder asc, careGuideItem.id asc
+            """)
+    List<CareGuideItem> findCareGuideItemsByGuideId(
+            @Param("careGuideId") Long careGuideId
     );
 }
