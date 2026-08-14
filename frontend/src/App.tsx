@@ -15,6 +15,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [screen, setScreen] = useState<Screen>("home")
   const [product, setProduct] = useState<Product | null>(null)
+  const [registrationId, setRegistrationId] = useState("")
   const [story, setStory] = useState("")
   const [emotions, setEmotions] = useState<Emotion[]>([])
   const [certs, setCerts] = useState<Certificate[]>([])
@@ -47,14 +48,16 @@ export default function App() {
         {screen === "step1" && (
           <ProductStepScreen
             onBack={() => go("home")}
-            onNext={(nextProduct) => {
+            onNext={(nextProduct, nextRegistrationId) => {
               setProduct(nextProduct)
+              setRegistrationId(nextRegistrationId)
               go("step2")
             }}
           />
         )}
         {screen === "step2" && (
           <StoryStepScreen
+            registrationId={registrationId}
             onBack={() => go("step1")}
             onNext={(nextStory, nextEmotions) => {
               setStory(nextStory)
@@ -68,6 +71,7 @@ export default function App() {
             product={product}
             story={story}
             emotions={emotions}
+            registrationId={registrationId}
             onBack={() => go("step2")}
             onNext={(certificate) => {
               setCerts((previous) => [...previous, certificate])
