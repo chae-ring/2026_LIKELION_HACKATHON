@@ -15,9 +15,13 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [screen, setScreen] = useState<Screen>("home")
   const [product, setProduct] = useState<Product | null>(null)
-  const [userProductId, setUserProductId] = useState<number | null>(null)
   const [story, setStory] = useState("")
   const [emotions, setEmotions] = useState<Emotion[]>([])
+
+  // TODO(효빈님 PRD-002 실연동 완료 시 교체): ProductStepScreen이 아직 mock이라
+  // 실제 userProductId를 안 돌려줌. 효빈님 작업 끝나면 onNext에서 받은 실제 값으로
+  // 바꿔야 함. 지금은 ART/COL/REC 테스트용 임시값.
+  const [userProductId] = useState<number>(1)
 
   // My Collection에서 상세로 넘어갈 때 쓰는 식별자 (전체 인증서를 들고
   // 다니지 않고, 서버에서 다시 조회할 수 있는 id만 들고 다님 - COL-001 요건)
@@ -53,16 +57,14 @@ export default function App() {
         {screen === "step1" && (
           <ProductStepScreen
             onBack={() => go("home")}
-            onNext={(nextProduct, nextUserProductId) => {
+            onNext={(nextProduct) => {
               setProduct(nextProduct)
-              setUserProductId(nextUserProductId)
               go("step2")
             }}
           />
         )}
-        {screen === "step2" && userProductId != null && (
+        {screen === "step2" && (
           <StoryStepScreen
-            userProductId={userProductId}
             onBack={() => go("step1")}
             onNext={(nextStory, nextEmotions) => {
               setStory(nextStory)
@@ -71,7 +73,7 @@ export default function App() {
             }}
           />
         )}
-        {screen === "step3" && product && userProductId != null && (
+        {screen === "step3" && product && (
           <CertificateStepScreen
             product={product}
             story={story}

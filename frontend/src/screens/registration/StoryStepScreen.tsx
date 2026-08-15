@@ -2,24 +2,18 @@ import { useState } from "react"
 import PrimaryButton from "../../components/common/PrimaryButton"
 import StepIndicator from "../../components/common/StepIndicator"
 import TopBar from "../../components/common/TopBar"
-import { submitStory } from "../../api/story"
-import { ApiError } from "../../api/client"
-import { koreanToEmotionCode } from "../../api/emotion-map"
 import type { Emotion } from "../../types"
 
 export default function StoryStepScreen({
-  userProductId,
   onBack,
   onNext,
 }: {
-  userProductId: number
   onBack: () => void
   onNext: (story: string, emotions: Emotion[]) => void
 }) {
   const [story, setStory] = useState("")
   const [emotions, setEmotions] = useState<Emotion[]>([])
   const [error, setError] = useState("")
-  const [submitting, setSubmitting] = useState(false)
 
   const EMOTIONS: Emotion[] = ["기쁨", "자부심", "설렘", "감사"]
   const MAX = 500
@@ -31,7 +25,7 @@ export default function StoryStepScreen({
     )
   }
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (story.length < MIN) {
       setError(`최소 ${MIN}자 이상 작성해 주세요. (현재 ${story.length}자)`)
       return
@@ -42,26 +36,7 @@ export default function StoryStepScreen({
       return
     }
 
-    setSubmitting(true)
-    setError("")
-
-    try {
-      // STORY-001: 구매 사연 및 감정 등록
-      await submitStory(userProductId, {
-        content: story,
-        emotions: emotions.map(koreanToEmotionCode),
-      })
-
-      onNext(story, emotions)
-    } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "구매 사연 등록 중 오류가 발생했습니다.",
-      )
-    } finally {
-      setSubmitting(false)
-    }
+    onNext(story, emotions)
   }
 
   return (
@@ -203,11 +178,8 @@ export default function StoryStepScreen({
       </div>
 
       <div style={{ padding: "24px", marginTop: "auto" }}>
-        <PrimaryButton
-          onClick={handleNext}
-          disabled={story.length < MIN || submitting}
-        >
-          {submitting ? "등록 중..." : "아트워크 만들기"}
+        <PrimaryButton onClick={handleNext} disabled={story.length < MIN}>
+          아트워크 만들기
         </PrimaryButton>
       </div>
     </div>
