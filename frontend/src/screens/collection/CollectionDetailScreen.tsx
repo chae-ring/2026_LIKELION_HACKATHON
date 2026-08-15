@@ -1,35 +1,167 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import CertificateCard from "../../components/certificate/CertificateCard"
 import PrimaryButton from "../../components/common/PrimaryButton"
-import SecondaryButton from "../../components/common/SecondaryButton"
-import StepIndicator from "../../components/common/StepIndicator"
 import TopBar from "../../components/common/TopBar"
-import VisetosPattern from "../../components/decoration/VisetosPattern"
-import { ARTWORK_URLS } from "../../constants/artworks"
-import { RECOMMENDED } from "../../constants/recommendations"
-import { CARE_TIPS, WARRANTY_STATUS_LABEL } from "../../constants/warranty"
-import type { Certificate, Emotion, Product } from "../../types"
-import { formatDate } from "../../utils/date"
-import { getWarrantyInfo } from "../../utils/warranty"
+import { getAftercare, getCollectionDetail } from "../../api/collection"
+import { ApiError } from "../../api/client"
+import { emotionCodeToKorean } from "../../api/emotion-map"
+import type { AftercareResponse, CollectionDetailResponse } from "../../api/types"
+import type { Certificate, Emotion } from "../../types"
+
+const WARRANTY_STATUS_LABEL: Record<
+  string,
+  { label: string; color: string; bg: string }
+> = {
+  ACTIVE: {
+    label: "보증 기간 내",
+    color: "#1a6b3c",
+    bg: "rgba(39,174,96,0.1)",
+  },
+  EXPIRING: {
+    label: "만료 예정",
+    color: "#8b5e00",
+    bg: "rgba(241,196,15,0.12)",
+  },
+  EXPIRED: { label: "보증 만료", color: "#9b2929", bg: "rgba(192,57,43,0.1)" },
+  UNKNOWN: {
+    label: "확인 필요",
+    color: "var(--brown-mid)",
+    bg: "var(--cream-mid)",
+  },
+}
+
+function toCertificate(detail: CollectionDetailResponse): Certificate {
+  return {
+    product: {
+      id: String(detail.product.id),
+      name: detail.product.name,
+      model: detail.product.model ?? "",
+      color: detail.product.color,
+      category: detail.product.category,
+      serial: detail.product.serialNumber,
+      imageUrl: "",
+    },
+    story: detail.story.content,
+    emotions: detail.story.emotions.map(emotionCodeToKorean) as Emotion[],
+    artworkUrl: detail.artworkUrl,
+    createdAt: new Date(detail.createdAt).toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+    registeredAt: new Date(detail.product.registeredAt),
+  }
+}
 
 export default function CollectionDetailScreen({
-  cert,
-
+  artworkId,
+  userProductId,
   onBack,
-
   onRecommendations,
 }: {
-  cert: Certificate
-
+  artworkId: number
+  userProductId: number
   onBack: () => void
-
   onRecommendations: () => void
 }) {
-  const warranty = getWarrantyInfo(cert)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [detail, setDetail] = useState<CollectionDetailResponse | null>(null)
+  const [aftercare, setAftercare] = useState<AftercareResponse | null>(null)
 
-  const badge = WARRANTY_STATUS_LABEL[warranty.status]
+  useEffect(() => {
+    let cancelled = false
 
-  const careTips = CARE_TIPS[cert.product.category] ?? CARE_TIPS.default
+    ;(async () => {
+      setLoading(true)
+      setError("")
+
+      try {
+        const [detailRes, aftercareRes] = await Promise.all([
+          getCollectionDetail(artworkId),
+          getAftercare(userProductId),
+        ])
+
+        if (cancelled) return
+        setDetail(detailRes)
+        setAftercare(aftercareRes)
+      } catch (err) {
+        if (cancelled) return
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "보증서 정보를 불러오는 중 오류가 발생했습니다.",
+        )
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [artworkId, userProductId])
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "var(--cream)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <TopBar onBack={onBack} label="보증서 상세" />
+        <div style={{ padding: 24 }}>
+          {[1, 1, 1].map((_, i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{
+                height: 80,
+                borderRadius: 4,
+                background: "var(--cream-dark)",
+                marginBottom: 14,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !detail || !aftercare) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "var(--cream)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <TopBar onBack={onBack} label="보증서 상세" />
+        <div style={{ padding: 24 }}>
+          <p
+            style={{
+              fontFamily: "Outfit, sans-serif",
+              fontSize: 13,
+              color: "#c0392b",
+            }}
+          >
+            {error || "정보를 불러오지 못했습니다."}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const cert = toCertificate(detail)
+  const badge =
+    WARRANTY_STATUS_LABEL[aftercare.warranty.status] ??
+    WARRANTY_STATUS_LABEL.UNKNOWN
+  const isUnknown = aftercare.warranty.status === "UNKNOWN"
 
   return (
     <div
@@ -43,7 +175,6 @@ export default function CollectionDetailScreen({
       <TopBar onBack={onBack} label="보증서 상세" />
 
       <div style={{ overflowY: "auto", flex: 1, padding: "24px 24px 0" }}>
-        {/* 보증서 카드 (플립) */}
         <CertificateCard cert={cert} />
 
         {/* 제품 기본 정보 */}
@@ -51,7 +182,6 @@ export default function CollectionDetailScreen({
           style={{
             marginTop: 20,
             background: "var(--warm-white)",
-
             border: "1px solid var(--border)",
             borderRadius: 4,
             padding: "18px 20px",
@@ -78,15 +208,10 @@ export default function CollectionDetailScreen({
           >
             {[
               ["제품명", cert.product.name],
-
               ["모델", cert.product.model],
-
               ["컬러", cert.product.color],
-
               ["카테고리", cert.product.category],
-
               ["시리얼", `····${cert.product.serial.slice(-4)}`],
-
               ["등록일", cert.createdAt],
             ].map(([k, v]) => (
               <div key={k}>
@@ -122,7 +247,6 @@ export default function CollectionDetailScreen({
           style={{
             marginTop: 16,
             background: "var(--warm-white)",
-
             border: "1px solid var(--border)",
             borderRadius: 4,
             padding: "18px 20px",
@@ -152,12 +276,9 @@ export default function CollectionDetailScreen({
               style={{
                 padding: "4px 10px",
                 borderRadius: 2,
-
                 background: badge.bg,
-
                 fontFamily: "Outfit, sans-serif",
                 fontSize: 10,
-
                 color: badge.color,
                 fontWeight: 600,
               }}
@@ -166,14 +287,11 @@ export default function CollectionDetailScreen({
             </span>
           </div>
 
-          {warranty.status === "unknown" ? (
-            /* 확인 불가 */
-
+          {isUnknown ? (
             <div
               style={{
                 padding: "14px 16px",
                 background: "var(--cream-mid)",
-
                 borderRadius: 2,
                 borderLeft: "2px solid var(--brown-light)",
               }}
@@ -205,13 +323,11 @@ export default function CollectionDetailScreen({
             </div>
           ) : (
             <div>
-              {/* 만료일 */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-
                   padding: "12px 0",
                   borderBottom: "1px solid var(--border)",
                 }}
@@ -233,20 +349,19 @@ export default function CollectionDetailScreen({
                     fontWeight: 600,
                   }}
                 >
-                  {warranty.expiryDate!.toLocaleDateString("ko-KR", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  {aftercare.warranty.expiresAt
+                    ? new Date(aftercare.warranty.expiresAt).toLocaleDateString(
+                        "ko-KR",
+                        { year: "numeric", month: "long", day: "numeric" },
+                      )
+                    : "-"}
                 </span>
               </div>
-              {/* 남은 기간 */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-
                   padding: "12px 0",
                 }}
               >
@@ -264,30 +379,28 @@ export default function CollectionDetailScreen({
                     fontFamily: "Outfit, sans-serif",
                     fontSize: 13,
                     fontWeight: 600,
-
                     color:
-                      warranty.status === "expiring"
+                      aftercare.warranty.status === "EXPIRING"
                         ? "#8b5e00"
-                        : warranty.status === "expired"
+                        : aftercare.warranty.status === "EXPIRED"
                           ? "#9b2929"
                           : "#1a6b3c",
                   }}
                 >
-                  {warranty.status === "expired"
+                  {aftercare.warranty.status === "EXPIRED"
                     ? "보증 종료"
-                    : `약 ${warranty.monthsLeft}개월`}
+                    : aftercare.warranty.monthsLeft != null
+                      ? `약 ${aftercare.warranty.monthsLeft}개월`
+                      : "-"}
                 </span>
               </div>
-              {/* 만료 임박 안내 */}
-              {warranty.status === "expiring" && (
+              {aftercare.warranty.status === "EXPIRING" && (
                 <div
                   style={{
                     padding: "12px 14px",
                     background: "rgba(241,196,15,0.1)",
-
                     borderRadius: 2,
                     borderLeft: "2px solid #c9a227",
-
                     marginTop: 4,
                   }}
                 >
@@ -306,15 +419,13 @@ export default function CollectionDetailScreen({
                   </p>
                 </div>
               )}
-              {warranty.status === "expired" && (
+              {aftercare.warranty.status === "EXPIRED" && (
                 <div
                   style={{
                     padding: "12px 14px",
                     background: "rgba(192,57,43,0.07)",
-
                     borderRadius: 2,
                     borderLeft: "2px solid #c0392b",
-
                     marginTop: 4,
                   }}
                 >
@@ -342,9 +453,7 @@ export default function CollectionDetailScreen({
           style={{
             marginTop: 16,
             marginBottom: 24,
-
             background: "var(--warm-white)",
-
             border: "1px solid var(--border)",
             borderRadius: 4,
             padding: "18px 20px",
@@ -363,9 +472,9 @@ export default function CollectionDetailScreen({
             세탁 및 보관 방법
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {careTips.map((tip, i) => (
+            {aftercare.careTips.map((tip) => (
               <div
-                key={i}
+                key={tip.order}
                 style={{ display: "flex", gap: 10, alignItems: "flex-start" }}
               >
                 <span
@@ -374,21 +483,17 @@ export default function CollectionDetailScreen({
                     height: 20,
                     borderRadius: "50%",
                     flexShrink: 0,
-
                     background: "var(--cream-dark)",
-
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-
                     fontFamily: "Outfit, sans-serif",
                     fontSize: 9,
-
                     color: "var(--brown-light)",
                     marginTop: 1,
                   }}
                 >
-                  {i + 1}
+                  {tip.order}
                 </span>
                 <p
                   style={{
@@ -399,7 +504,7 @@ export default function CollectionDetailScreen({
                     lineHeight: 1.65,
                   }}
                 >
-                  {tip}
+                  {tip.content}
                 </p>
               </div>
             ))}

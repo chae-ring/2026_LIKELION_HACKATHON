@@ -1,16 +1,10 @@
-import { useEffect, useRef, useState } from "react"
-import CertificateCard from "../components/certificate/CertificateCard"
+import { useEffect, useState } from "react"
 import PrimaryButton from "../components/common/PrimaryButton"
-import SecondaryButton from "../components/common/SecondaryButton"
-import StepIndicator from "../components/common/StepIndicator"
 import TopBar from "../components/common/TopBar"
-import VisetosPattern from "../components/decoration/VisetosPattern"
-import { ARTWORK_URLS } from "../constants/artworks"
-import { RECOMMENDED } from "../constants/recommendations"
-import { CARE_TIPS, WARRANTY_STATUS_LABEL } from "../constants/warranty"
-import type { Certificate, Emotion, Product } from "../types"
-import { formatDate } from "../utils/date"
-import { getWarrantyInfo } from "../utils/warranty"
+import { getUserId } from "../api/auth"
+import { ApiError } from "../api/client"
+import { getRecommendations } from "../api/recommendation"
+import type { ProductRecommendation } from "../api/types"
 
 export default function RecommendationsScreen({
   onCollection,
@@ -19,6 +13,48 @@ export default function RecommendationsScreen({
   onCollection: () => void
   onBack: () => void
 }) {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [items, setItems] = useState<ProductRecommendation[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    ;(async () => {
+      setLoading(true)
+      setError("")
+
+      const userId = getUserId()
+
+      if (userId == null) {
+        if (!cancelled) {
+          setError("로그인 정보가 없어 추천 상품을 불러올 수 없습니다.")
+          setLoading(false)
+        }
+        return
+      }
+
+      try {
+        const res = await getRecommendations(userId)
+        if (!cancelled) setItems(res.recommendations)
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof ApiError
+              ? err.message
+              : "추천 상품을 불러오는 중 오류가 발생했습니다.",
+          )
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <div
       className="fade-up"
@@ -55,7 +91,9 @@ export default function RecommendationsScreen({
             lineHeight: 1.6,
           }}
         >
-          등록하신 제품과 어울리는 2025 S/S 컬렉션을 선별했습니다.
+          {loading
+            ? "AI가 컬렉션을 분석하고 있어요…"
+            : "등록하신 제품과 어울리는 상품을 AI가 선별했습니다."}
         </p>
       </div>
 
@@ -68,121 +106,153 @@ export default function RecommendationsScreen({
           flex: 1,
         }}
       >
-        {RECOMMENDED.map((item, i) => (
-          <div
-            key={i}
+        {loading &&
+          [0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{
+                height: 130,
+                borderRadius: 4,
+                background: "var(--cream-dark)",
+              }}
+            />
+          ))}
+
+        {!loading && error && (
+          <p
             style={{
-              background: "var(--warm-white)",
-              borderRadius: 4,
-
-              border: "1px solid var(--border)",
-              overflow: "hidden",
-
-              display: "flex",
-              gap: 0,
+              fontFamily: "Outfit, sans-serif",
+              fontSize: 13,
+              color: "#c0392b",
             }}
           >
-            <img
-              src={item.imageUrl}
-              alt={item.name}
-              style={{ width: 110, flexShrink: 0, objectFit: "cover" }}
-            />
+            {error}
+          </p>
+        )}
+
+        {!loading && !error && items.length === 0 && (
+          <p
+            style={{
+              fontFamily: "Outfit, sans-serif",
+              fontSize: 13,
+              color: "var(--brown-light)",
+            }}
+          >
+            아직 추천할 상품이 없습니다.
+          </p>
+        )}
+
+        {!loading &&
+          !error &&
+          items.map((item) => (
             <div
+              key={item.productId}
               style={{
-                padding: "16px 16px 16px 16px",
+                background: "var(--warm-white)",
+                borderRadius: 4,
+                border: "1px solid var(--border)",
+                overflow: "hidden",
                 display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                flex: 1,
+                gap: 0,
               }}
             >
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 6,
-                    marginBottom: 8,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <span
-                    style={{
-                      padding: "2px 8px",
-                      background: "var(--cream-dark)",
-
-                      borderRadius: 2,
-                      fontFamily: "Outfit, sans-serif",
-
-                      fontSize: 9,
-                      color: "var(--brown-mid)",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    {item.category}
-                  </span>
-                  <span
-                    style={{
-                      padding: "2px 8px",
-                      border: "1px solid var(--border)",
-
-                      borderRadius: 2,
-                      fontFamily: "Outfit, sans-serif",
-
-                      fontSize: 9,
-                      color: "var(--gold)",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    {item.season}
-                  </span>
-                </div>
-                <p
-                  style={{
-                    margin: "0 0 6px",
-                    fontFamily: "Playfair Display, serif",
-                    fontSize: 15,
-                    color: "var(--brown)",
-                    fontWeight: 500,
-                  }}
-                >
-                  {item.name}
-                </p>
-                <p
-                  style={{
-                    margin: 0,
-                    fontFamily: "Outfit, sans-serif",
-                    fontSize: 11,
-                    color: "var(--brown-light)",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {item.reason}
-                </p>
-              </div>
-              <button
+              <img
+                src={item.imageUrl}
+                alt={item.name}
+                style={{ width: 110, flexShrink: 0, objectFit: "cover" }}
+              />
+              <div
                 style={{
-                  marginTop: 12,
-                  padding: "8px 0",
-                  background: "none",
-
-                  border: "none",
-                  borderBottom: "1px solid var(--brown)",
-
-                  cursor: "pointer",
-                  textAlign: "left",
-
-                  fontFamily: "Outfit, sans-serif",
-                  fontSize: 11,
-
-                  color: "var(--brown)",
-                  letterSpacing: "0.06em",
+                  padding: "16px 16px 16px 16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  flex: 1,
                 }}
               >
-                상품 자세히 보기 →
-              </button>
+                <div>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 6,
+                      marginBottom: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: "2px 8px",
+                        background: "var(--cream-dark)",
+                        borderRadius: 2,
+                        fontFamily: "Outfit, sans-serif",
+                        fontSize: 9,
+                        color: "var(--brown-mid)",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      {item.category}
+                    </span>
+                    <span
+                      style={{
+                        padding: "2px 8px",
+                        border: "1px solid var(--border)",
+                        borderRadius: 2,
+                        fontFamily: "Outfit, sans-serif",
+                        fontSize: 9,
+                        color: "var(--gold)",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      {item.season}
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      margin: "0 0 6px",
+                      fontFamily: "Playfair Display, serif",
+                      fontSize: 15,
+                      color: "var(--brown)",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {item.name}
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontFamily: "Outfit, sans-serif",
+                      fontSize: 11,
+                      color: "var(--brown-light)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {item.reason}
+                  </p>
+                </div>
+                <a
+                  href={item.productUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    marginTop: 12,
+                    padding: "8px 0",
+                    display: "inline-block",
+                    width: "fit-content",
+                    borderBottom: "1px solid var(--brown)",
+                    textAlign: "left",
+                    fontFamily: "Outfit, sans-serif",
+                    fontSize: 11,
+                    color: "var(--brown)",
+                    letterSpacing: "0.06em",
+                    textDecoration: "none",
+                  }}
+                >
+                  상품 자세히 보기 →
+                </a>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       <div style={{ padding: "8px 24px 40px" }}>
@@ -193,5 +263,3 @@ export default function RecommendationsScreen({
     </div>
   )
 }
-
-// ─── AS 기간 계산 헬퍼 ────────────────────────────────────────────────────────

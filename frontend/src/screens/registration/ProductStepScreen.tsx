@@ -1,36 +1,29 @@
-import { useEffect, useRef, useState } from "react"
-import CertificateCard from "../../components/certificate/CertificateCard"
+import { useState } from "react"
 import PrimaryButton from "../../components/common/PrimaryButton"
-import SecondaryButton from "../../components/common/SecondaryButton"
 import StepIndicator from "../../components/common/StepIndicator"
 import TopBar from "../../components/common/TopBar"
-import VisetosPattern from "../../components/decoration/VisetosPattern"
-import { ARTWORK_URLS } from "../../constants/artworks"
-import { RECOMMENDED } from "../../constants/recommendations"
-import { CARE_TIPS, WARRANTY_STATUS_LABEL } from "../../constants/warranty"
-import type { Certificate, Emotion, Product } from "../../types"
-import { formatDate } from "../../utils/date"
-import { getWarrantyInfo } from "../../utils/warranty"
-import { VALID_SERIALS } from "../../constants/products"
+import { registerProduct, verifySerial } from "../../api/product"
+import { ApiError } from "../../api/client"
+import type { Product } from "../../types"
+
+const today = () => new Date().toISOString().slice(0, 10)
 
 export default function ProductStepScreen({
   onBack,
-
   onNext,
 }: {
   onBack: () => void
-
-  onNext: (product: Product) => void
+  onNext: (product: Product, userProductId: number) => void
 }) {
   const [serial, setSerial] = useState("")
-
+  const [purchaseDate, setPurchaseDate] = useState("")
   const [error, setError] = useState("")
-
   const [confirmed, setConfirmed] = useState<Product | null>(null)
-
   const [touched, setTouched] = useState(false)
+  const [checking, setChecking] = useState(false)
+  const [registering, setRegistering] = useState(false)
 
-  const handleCheck = () => {
+  const handleCheck = async () => {
     setTouched(true)
 
     const upper = serial.trim().toUpperCase()
@@ -40,25 +33,70 @@ export default function ProductStepScreen({
       return
     }
 
-    if (upper === "MCM9999") {
-      setError("이미 등록된 시리얼 넘버입니다.")
-      setConfirmed(null)
-      return
-    }
-
-    const found = VALID_SERIALS[upper]
-
-    if (!found) {
-      setError(
-        "유효하지 않은 시리얼 넘버입니다. 제품 내부 태그를 확인해 주세요.",
-      )
-      setConfirmed(null)
-      return
-    }
-
+    setChecking(true)
     setError("")
 
-    setConfirmed(found)
+    try {
+      // PRD-001: 시리얼 번호 검증
+      const res = await verifySerial(upper)
+
+      if (!res.valid || !res.product) {
+        setConfirmed(null)
+        setError(
+          "유효하지 않은 시리얼 넘버입니다. 제품 내부 태그를 확인해 주세요.",
+        )
+        return
+      }
+
+      setConfirmed({
+        id: String(res.product.id),
+        name: res.product.name,
+        model: res.product.model ?? "",
+        color: res.product.color,
+        category: res.product.category,
+        serial: upper,
+        imageUrl: res.product.imageUrl,
+      })
+    } catch (err) {
+      setConfirmed(null)
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "시리얼 넘버 확인 중 오류가 발생했습니다.",
+      )
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  const handleNext = async () => {
+    if (!confirmed) return
+
+    if (!purchaseDate) {
+      setError("구매일을 선택해 주세요.")
+      return
+    }
+
+    setRegistering(true)
+    setError("")
+
+    try {
+      // PRD-002: 검증한 제품을 사용자 컬렉션에 등록
+      const res = await registerProduct({
+        serialNumber: confirmed.serial,
+        purchaseDate,
+      })
+
+      onNext(confirmed, res.userProductId)
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "제품 등록 중 오류가 발생했습니다.",
+      )
+    } finally {
+      setRegistering(false)
+    }
   }
 
   return (
@@ -117,7 +155,6 @@ export default function ProductStepScreen({
       </div>
 
       <div style={{ padding: "32px 24px 0" }}>
-        {/* Serial input */}
         <label
           style={{
             fontFamily: "Outfit, sans-serif",
@@ -141,17 +178,12 @@ export default function ProductStepScreen({
             style={{
               width: "100%",
               padding: "15px 16px",
-
               fontFamily: "Outfit, sans-serif",
               fontSize: 15,
-
               background: "var(--warm-white)",
-
               border: `1px solid ${error ? "#c0392b" : "var(--border)"}`,
-
               borderRadius: 2,
               color: "var(--brown)",
-
               outline: "none",
               letterSpacing: "0.04em",
             }}
@@ -170,15 +202,12 @@ export default function ProductStepScreen({
           </p>
         )}
 
-        {/* Help tip */}
         <div
           style={{
             marginTop: 16,
             padding: "12px 14px",
-
             background: "var(--cream-mid)",
             borderRadius: 2,
-
             borderLeft: "2px solid var(--gold)",
           }}
         >
@@ -197,17 +226,14 @@ export default function ProductStepScreen({
           </p>
         </div>
 
-        {/* Confirmed product card */}
         {confirmed && (
           <div
             className="fade-up"
             style={{
               marginTop: 24,
               background: "var(--warm-white)",
-
               border: "1px solid var(--border)",
               borderRadius: 4,
-
               overflow: "hidden",
             }}
           >
@@ -299,6 +325,45 @@ export default function ProductStepScreen({
             </div>
           </div>
         )}
+
+        {/* 구매일 입력 UI (PRD-002) */}
+        {confirmed && (
+          <div className="fade-up" style={{ marginTop: 20 }}>
+            <label
+              style={{
+                fontFamily: "Outfit, sans-serif",
+                fontSize: 11,
+                color: "var(--brown)",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
+              구매일
+            </label>
+            <div style={{ marginTop: 8 }}>
+              <input
+                type="date"
+                value={purchaseDate}
+                max={today()}
+                onChange={(e) => {
+                  setPurchaseDate(e.target.value)
+                  setError("")
+                }}
+                style={{
+                  width: "100%",
+                  padding: "15px 16px",
+                  fontFamily: "Outfit, sans-serif",
+                  fontSize: 15,
+                  background: "var(--warm-white)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 2,
+                  color: "var(--brown)",
+                  outline: "none",
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div
@@ -311,16 +376,16 @@ export default function ProductStepScreen({
         }}
       >
         {!confirmed && (
-          <PrimaryButton onClick={handleCheck}>시리얼 넘버 확인</PrimaryButton>
+          <PrimaryButton onClick={handleCheck} disabled={checking}>
+            {checking ? "확인 중..." : "시리얼 넘버 확인"}
+          </PrimaryButton>
         )}
         {confirmed && (
-          <PrimaryButton onClick={() => onNext(confirmed)}>
-            다음 단계로
+          <PrimaryButton onClick={handleNext} disabled={registering}>
+            {registering ? "등록 중..." : "다음 단계로"}
           </PrimaryButton>
         )}
       </div>
     </div>
   )
 }
-
-// 3. Step 2 – Story

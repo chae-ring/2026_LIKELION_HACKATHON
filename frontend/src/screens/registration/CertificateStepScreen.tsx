@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import CertificateCard from "../../components/certificate/CertificateCard"
 import PrimaryButton from "../../components/common/PrimaryButton"
 import SecondaryButton from "../../components/common/SecondaryButton"
@@ -6,72 +6,102 @@ import StepIndicator from "../../components/common/StepIndicator"
 import TopBar from "../../components/common/TopBar"
 import VisetosPattern from "../../components/decoration/VisetosPattern"
 import { ARTWORK_URLS } from "../../constants/artworks"
-import { RECOMMENDED } from "../../constants/recommendations"
-import { CARE_TIPS, WARRANTY_STATUS_LABEL } from "../../constants/warranty"
+import { ApiError } from "../../api/client"
+import { pollArtworkStatus, requestArtwork } from "../../api/artwork"
 import type { Certificate, Emotion, Product } from "../../types"
 import { formatDate } from "../../utils/date"
-import { getWarrantyInfo } from "../../utils/warranty"
+
+type Phase = "loading" | "success" | "fail"
 
 export default function CertificateStepScreen({
   product,
-
   story,
-
   emotions,
-
+  userProductId,
   onNext,
-
   onBack,
 }: {
   product: Product
-
   story: string
-
   emotions: Emotion[]
-
-  onNext: (cert: Certificate) => void
-
+  userProductId: number
+  onNext: () => void
   onBack: () => void
 }) {
-  const [phase, setPhase] = useState<"loading" | "success" | "fail">("loading")
-
+  const [phase, setPhase] = useState<Phase>("loading")
   const [cert, setCert] = useState<Certificate | null>(null)
+  const [errorMessage, setErrorMessage] = useState("")
+  const cancelledRef = useRef({ cancelled: false })
 
-  useEffect(() => {
-    const t = setTimeout(
-      () => {
-        // Simulate 90% success
+  const runArtworkGeneration = () => {
+    cancelledRef.current = { cancelled: false }
+    const signal = cancelledRef.current
 
-        if (Math.random() < 0.9) {
+    setPhase("loading")
+    setErrorMessage("")
+
+    ;(async () => {
+      try {
+        // ART-001: 아트워크 생성 요청
+        const { artworkId } = await requestArtwork(userProductId)
+
+        // ART-002: 상태 폴링 (30초 타임아웃 포함)
+        const result = await pollArtworkStatus(artworkId, {
+          timeoutMs: 30000,
+          signal,
+        })
+
+        if (signal.cancelled) return
+
+        if (result.status === "COMPLETED" && result.artworkUrl) {
           const now = new Date()
-
-          const c: Certificate = {
+          setCert({
             product,
-
             story,
-
             emotions,
-
-            artworkUrl:
-              ARTWORK_URLS[Math.floor(Math.random() * ARTWORK_URLS.length)],
-
+            artworkUrl: result.artworkUrl,
             createdAt: formatDate(now),
-
             registeredAt: now,
-          }
-
-          setCert(c)
-
+          })
           setPhase("success")
         } else {
+          setErrorMessage("아트워크 생성에 실패했습니다.")
           setPhase("fail")
         }
-      },
-      2800,
-    )
+      } catch (err) {
+        if (signal.cancelled) return
 
-    return () => clearTimeout(t)
+        setErrorMessage(
+          err instanceof ApiError
+            ? err.message
+            : "아트워크 생성 중 오류가 발생했습니다.",
+        )
+        setPhase("fail")
+      }
+    })()
+  }
+
+  useEffect(() => {
+    runArtworkGeneration()
+    return () => {
+      cancelledRef.current.cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // 기획서 리스크 대응: 실패 시 사전 생성된 대체 아트워크로 진행
+  const useFallbackArtwork = () => {
+    const now = new Date()
+    setCert({
+      product,
+      story,
+      emotions,
+      artworkUrl: ARTWORK_URLS[0],
+      createdAt: formatDate(now),
+      registeredAt: now,
+    })
+    setPhase("success")
+  }
 
   return (
     <div
@@ -111,15 +141,13 @@ export default function CertificateStepScreen({
         >
           {phase === "loading" && "아트워크를\n생성하고 있어요"}
           {phase === "success" && "당신의 아트워크가\n완성되었습니다"}
-          {phase === "fail" && "아트워크를\n다시 만들어드릴게요"}
+          {phase === "fail" && "아트워크 생성에\n문제가 생겼어요"}
         </h2>
       </div>
 
       <div style={{ padding: "28px 24px 0", flex: 1 }}>
-        {/* Loading state */}
         {phase === "loading" && (
           <div>
-            {/* Skeleton */}
             <div
               className="skeleton"
               style={{
@@ -143,7 +171,6 @@ export default function CertificateStepScreen({
                   gap: 16,
                 }}
               >
-                {/* Spinner */}
                 <div style={{ position: "relative", width: 48, height: 48 }}>
                   <svg
                     className="spin-slow"
@@ -171,10 +198,8 @@ export default function CertificateStepScreen({
                       position: "absolute",
                       inset: 0,
                       display: "flex",
-
                       alignItems: "center",
                       justifyContent: "center",
-
                       fontFamily: "Playfair Display, serif",
                       fontSize: 18,
                       color: "var(--gold)",
@@ -196,7 +221,6 @@ export default function CertificateStepScreen({
                 </p>
               </div>
             </div>
-            {/* Skeleton rows */}
             {[80, 55, 65].map((w, i) => (
               <div
                 key={i}
@@ -213,7 +237,6 @@ export default function CertificateStepScreen({
           </div>
         )}
 
-        {/* Success */}
         {phase === "success" && cert && (
           <div className="fade-up">
             <CertificateCard cert={cert} />
@@ -221,10 +244,8 @@ export default function CertificateStepScreen({
               style={{
                 marginTop: 16,
                 padding: "12px 14px",
-
                 background: "var(--cream-mid)",
                 borderRadius: 2,
-
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
@@ -245,7 +266,6 @@ export default function CertificateStepScreen({
           </div>
         )}
 
-        {/* Fail */}
         {phase === "fail" && (
           <div className="fade-up">
             <div
@@ -253,7 +273,6 @@ export default function CertificateStepScreen({
                 background: "var(--brown)",
                 borderRadius: 6,
                 padding: 28,
-
                 position: "relative",
                 overflow: "hidden",
                 textAlign: "center",
@@ -280,32 +299,23 @@ export default function CertificateStepScreen({
                     lineHeight: 1.6,
                   }}
                 >
-                  AI 생성 중 오류가 발생했습니다.
-                  <br />
-                  대체 아트워크를 준비했습니다.
+                  {errorMessage || "AI 생성 중 오류가 발생했습니다."}
                 </p>
               </div>
             </div>
-            <div style={{ marginTop: 16 }}>
-              <SecondaryButton
-                onClick={() => {
-                  setPhase("loading")
-                  setTimeout(() => {
-                    const now = new Date()
-                    const c: Certificate = {
-                      product,
-                      story,
-                      emotions,
-                      artworkUrl: ARTWORK_URLS[1],
-                      createdAt: formatDate(now),
-                      registeredAt: now,
-                    }
-                    setCert(c)
-                    setPhase("success")
-                  }, 2000)
-                }}
-              >
-                다시 만들기
+            <div
+              style={{
+                marginTop: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              <PrimaryButton onClick={runArtworkGeneration}>
+                다시 시도하기
+              </PrimaryButton>
+              <SecondaryButton onClick={useFallbackArtwork}>
+                대체 아트워크로 계속하기
               </SecondaryButton>
             </div>
           </div>
@@ -314,14 +324,9 @@ export default function CertificateStepScreen({
 
       {phase === "success" && cert && (
         <div style={{ padding: "24px", marginTop: "auto" }}>
-          <PrimaryButton onClick={() => onNext(cert)}>
-            추천 상품 보기
-          </PrimaryButton>
+          <PrimaryButton onClick={onNext}>추천 상품 보기</PrimaryButton>
         </div>
       )}
     </div>
   )
 }
-
-// 5. Recommendations
-
