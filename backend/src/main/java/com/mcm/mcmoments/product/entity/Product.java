@@ -29,7 +29,7 @@ public class Product {
     @Column(nullable = false, length = 50)
     private String color;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 100)
     private String category;
 
     @Column(length = 50)
