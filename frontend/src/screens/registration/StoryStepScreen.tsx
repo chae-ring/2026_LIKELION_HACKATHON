@@ -1,36 +1,27 @@
-import { useEffect, useRef, useState } from "react"
-import CertificateCard from "../../components/certificate/CertificateCard"
+import { useState } from "react"
 import PrimaryButton from "../../components/common/PrimaryButton"
-import SecondaryButton from "../../components/common/SecondaryButton"
 import StepIndicator from "../../components/common/StepIndicator"
 import TopBar from "../../components/common/TopBar"
-import VisetosPattern from "../../components/decoration/VisetosPattern"
-import { ARTWORK_URLS } from "../../constants/artworks"
-import { RECOMMENDED } from "../../constants/recommendations"
-import { CARE_TIPS, WARRANTY_STATUS_LABEL } from "../../constants/warranty"
-import type { Certificate, Emotion, Product } from "../../types"
-import { formatDate } from "../../utils/date"
-import { getWarrantyInfo } from "../../utils/warranty"
+import { submitStory } from "../../api/story"
+import { ApiError } from "../../api/client"
+import type { Emotion } from "../../types"
 
 export default function StoryStepScreen({
+  registrationId,
   onBack,
-
   onNext,
 }: {
+  registrationId: string
   onBack: () => void
-
   onNext: (story: string, emotions: Emotion[]) => void
 }) {
   const [story, setStory] = useState("")
-
   const [emotions, setEmotions] = useState<Emotion[]>([])
-
   const [error, setError] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   const EMOTIONS: Emotion[] = ["기쁨", "자부심", "설렘", "감사"]
-
   const MAX = 500
-
   const MIN = 20
 
   const toggleEmotion = (e: Emotion) => {
@@ -39,7 +30,7 @@ export default function StoryStepScreen({
     )
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (story.length < MIN) {
       setError(`최소 ${MIN}자 이상 작성해 주세요. (현재 ${story.length}자)`)
       return
@@ -50,9 +41,21 @@ export default function StoryStepScreen({
       return
     }
 
+    setSubmitting(true)
     setError("")
 
-    onNext(story, emotions)
+    try {
+      await submitStory({ registrationId, story, emotions })
+      onNext(story, emotions)
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "구매 사연 등록 중 오류가 발생했습니다.",
+      )
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -113,18 +116,13 @@ export default function StoryStepScreen({
             style={{
               width: "100%",
               padding: "14px 16px",
-
               fontFamily: "Outfit, sans-serif",
               fontSize: 14,
               lineHeight: 1.7,
-
               background: "var(--warm-white)",
-
               border: `1px solid ${error ? "#c0392b" : "var(--border)"}`,
-
               borderRadius: 2,
               color: "var(--brown)",
-
               outline: "none",
               resize: "none",
             }}
@@ -134,10 +132,8 @@ export default function StoryStepScreen({
               position: "absolute",
               bottom: 12,
               right: 14,
-
               fontFamily: "Outfit, sans-serif",
               fontSize: 11,
-
               color: story.length >= MIN ? "var(--brown-light)" : "#c0392b",
             }}
           >
@@ -181,22 +177,16 @@ export default function StoryStepScreen({
                   onClick={() => toggleEmotion(e)}
                   style={{
                     padding: "10px 18px",
-
                     background: active ? "var(--brown)" : "transparent",
-
                     color: active ? "var(--warm-white)" : "var(--brown)",
-
                     border: `1px solid ${
                       active ? "var(--brown)" : "var(--border)"
                     }`,
-
                     borderRadius: 40,
                     cursor: "pointer",
-
                     fontFamily: "Outfit, sans-serif",
                     fontSize: 14,
                     fontWeight: 500,
-
                     transition: "all 0.2s ease",
                   }}
                 >
@@ -209,12 +199,13 @@ export default function StoryStepScreen({
       </div>
 
       <div style={{ padding: "24px", marginTop: "auto" }}>
-        <PrimaryButton onClick={handleNext} disabled={story.length < MIN}>
-          아트워크 만들기
+        <PrimaryButton
+          onClick={handleNext}
+          disabled={story.length < MIN || submitting}
+        >
+          {submitting ? "등록 중..." : "아트워크 만들기"}
         </PrimaryButton>
       </div>
     </div>
   )
 }
-
-// 4. Step 3 – Artwork Result
