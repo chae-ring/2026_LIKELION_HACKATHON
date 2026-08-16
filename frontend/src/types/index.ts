@@ -3,11 +3,11 @@ export type Screen = "home" | "step1" | "step2" | "step3" | "recommendations" | 
 export type Emotion = "기쁨" | "자부심" | "설렘" | "감사"
 
 export interface Product {
-  id: string
+  id: number
 
   name: string
 
-  model: string
+  model: string | null
 
   color: string
 

@@ -2,7 +2,7 @@ import type { Product } from "../types"
 
 export const VALID_SERIALS: Record<string, Product> = {
   MCM2024001: {
-    id: "p1",
+    id: 1,
 
     name: "Stark Backpack Medium",
 
@@ -19,7 +19,7 @@ export const VALID_SERIALS: Record<string, Product> = {
   },
 
   MCM2024002: {
-    id: "p2",
+    id: 2,
 
     name: "Milano Shoulder Bag",
 
@@ -36,7 +36,7 @@ export const VALID_SERIALS: Record<string, Product> = {
   },
 
   MCM2024003: {
-    id: "p3",
+    id: 3,
 
     name: "Patricia Tote Large",
 

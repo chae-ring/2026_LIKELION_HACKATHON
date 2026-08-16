@@ -1,27 +1,52 @@
 import { useState } from "react"
+
 import PrimaryButton from "../../components/common/PrimaryButton"
+
 import StepIndicator from "../../components/common/StepIndicator"
+
 import TopBar from "../../components/common/TopBar"
+
 import { submitStory } from "../../api/story"
+
 import { ApiError } from "../../api/client"
+
 import type { Emotion } from "../../types"
 
 export default function StoryStepScreen({
-  registrationId,
+  userProductId,
+
   onBack,
+
   onNext,
 }: {
-  registrationId: string
+  userProductId: number
+
   onBack: () => void
+
   onNext: (story: string, emotions: Emotion[]) => void
 }) {
   const [story, setStory] = useState("")
+
   const [emotions, setEmotions] = useState<Emotion[]>([])
+
   const [error, setError] = useState("")
+
   const [submitting, setSubmitting] = useState(false)
 
   const EMOTIONS: Emotion[] = ["기쁨", "자부심", "설렘", "감사"]
+
+  const EMOTION_CODES = {
+    기쁨: "JOY",
+
+    자부심: "PRIDE",
+
+    설렘: "EXCITEMENT",
+
+    감사: "GRATITUDE",
+  } as const
+
   const MAX = 500
+
   const MIN = 20
 
   const toggleEmotion = (e: Emotion) => {
@@ -33,19 +58,27 @@ export default function StoryStepScreen({
   const handleNext = async () => {
     if (story.length < MIN) {
       setError(`최소 ${MIN}자 이상 작성해 주세요. (현재 ${story.length}자)`)
+
       return
     }
 
     if (emotions.length === 0) {
       setError("감정을 하나 이상 선택해 주세요.")
+
       return
     }
 
     setSubmitting(true)
+
     setError("")
 
     try {
-      await submitStory({ registrationId, story, emotions })
+      await submitStory(userProductId, {
+        content: story,
+
+        emotions: emotions.map((emotion) => EMOTION_CODES[emotion]),
+      })
+
       onNext(story, emotions)
     } catch (err) {
       setError(
@@ -63,8 +96,11 @@ export default function StoryStepScreen({
       className="fade-up"
       style={{
         minHeight: "100vh",
+
         background: "var(--cream)",
+
         display: "flex",
+
         flexDirection: "column",
       }}
     >
@@ -75,10 +111,15 @@ export default function StoryStepScreen({
         <p
           style={{
             margin: "0 0 4px",
+
             fontFamily: "Outfit, sans-serif",
+
             fontSize: 11,
+
             letterSpacing: "0.15em",
+
             color: "var(--brown-light)",
+
             textTransform: "uppercase",
           }}
         >
@@ -87,10 +128,15 @@ export default function StoryStepScreen({
         <h2
           style={{
             margin: 0,
+
             fontFamily: "Playfair Display, serif",
+
             fontSize: 26,
+
             fontWeight: 500,
+
             color: "var(--brown)",
+
             lineHeight: 1.3,
           }}
         >
@@ -109,31 +155,47 @@ export default function StoryStepScreen({
             value={story}
             onChange={(e) => {
               setStory(e.target.value.slice(0, MAX))
+
               setError("")
             }}
             placeholder="졸업 선물로 스스로에게 처음 선물한 가방이에요. 오랫동안 모아온 돈으로 구입한 순간, 말로 표현할 수 없는 뿌듯함이 밀려왔습니다..."
             rows={6}
             style={{
               width: "100%",
+
               padding: "14px 16px",
+
               fontFamily: "Outfit, sans-serif",
+
               fontSize: 14,
+
               lineHeight: 1.7,
+
               background: "var(--warm-white)",
+
               border: `1px solid ${error ? "#c0392b" : "var(--border)"}`,
+
               borderRadius: 2,
+
               color: "var(--brown)",
+
               outline: "none",
+
               resize: "none",
             }}
           />
           <div
             style={{
               position: "absolute",
+
               bottom: 12,
+
               right: 14,
+
               fontFamily: "Outfit, sans-serif",
+
               fontSize: 11,
+
               color: story.length >= MIN ? "var(--brown-light)" : "#c0392b",
             }}
           >
@@ -144,8 +206,11 @@ export default function StoryStepScreen({
           <p
             style={{
               margin: "8px 0 0",
+
               fontFamily: "Outfit, sans-serif",
+
               fontSize: 12,
+
               color: "#c0392b",
             }}
           >
@@ -158,10 +223,15 @@ export default function StoryStepScreen({
           <p
             style={{
               margin: "0 0 12px",
+
               fontFamily: "Outfit, sans-serif",
+
               fontSize: 11,
+
               color: "var(--brown)",
+
               letterSpacing: "0.1em",
+
               textTransform: "uppercase",
             }}
           >
@@ -177,16 +247,25 @@ export default function StoryStepScreen({
                   onClick={() => toggleEmotion(e)}
                   style={{
                     padding: "10px 18px",
+
                     background: active ? "var(--brown)" : "transparent",
+
                     color: active ? "var(--warm-white)" : "var(--brown)",
+
                     border: `1px solid ${
                       active ? "var(--brown)" : "var(--border)"
                     }`,
+
                     borderRadius: 40,
+
                     cursor: "pointer",
+
                     fontFamily: "Outfit, sans-serif",
+
                     fontSize: 14,
+
                     fontWeight: 500,
+
                     transition: "all 0.2s ease",
                   }}
                 >
