@@ -1,6 +1,6 @@
-import { useState } from "react";
-import VisetosPattern from "../components/decoration/VisetosPattern";
-import { BACKEND_BASE_URL } from "../api/config";
+import { useState } from "react"
+
+import { BACKEND_BASE_URL } from "../api/config"
 
 function GoogleIcon() {
   return (
@@ -22,79 +22,67 @@ function GoogleIcon() {
         d="M12 5.96c1.47 0 2.78.5 3.82 1.49l2.87-2.87A9.62 9.62 0 0 0 12 2a10 10 0 0 0-8.96 5.49l3.35 2.6C7.18 7.72 9.39 5.96 12 5.96Z"
       />
     </svg>
-  );
+  )
 }
 
 export default function LoginScreen() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleLogin = () => {
-    setIsLoading(true);
+    setIsLoading(true)
 
     // 백엔드 Spring Security Google OAuth 로그인 시작
-    window.location.href = `${BACKEND_BASE_URL}/oauth2/authorization/google`;
-  };
+
+    window.location.href = `${BACKEND_BASE_URL}/oauth2/authorization/google`
+  }
 
   return (
     <main
       style={{
         minHeight: "100vh",
+
         background: "var(--cream)",
+
         display: "flex",
+
         flexDirection: "column",
+
         overflow: "hidden",
       }}
     >
       <div
         style={{
-          height: 300,
-          background: "var(--brown)",
+          minHeight: 240,
+
           position: "relative",
+
           display: "flex",
+
           alignItems: "center",
+
           justifyContent: "center",
-          overflow: "hidden",
+
+          padding: "52px 28px 24px",
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.14,
-          }}
-        >
-          <VisetosPattern />
-        </div>
-
-        <div
-          style={{
-            position: "absolute",
-            inset: 20,
-            border: "1px solid rgba(184,146,74,0.3)",
-          }}
-        />
-
         <div
           className="fade-up"
           style={{
             textAlign: "center",
-            zIndex: 1,
           }}
         >
-          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-            <path
-              d="M16 2 18 14 30 16 18 18 16 30 14 18 2 16 14 14 16 2Z"
-              fill="var(--gold)"
-            />
-          </svg>
-
           <p
             style={{
-              margin: "18px 0 5px",
-              color: "rgba(253,250,244,0.55)",
+              margin: "0 0 8px",
+
+              color: "var(--gold)",
+
               fontFamily: "Playfair Display, serif",
+
               fontSize: 10,
+
               letterSpacing: "0.5em",
+
               textTransform: "uppercase",
             }}
           >
@@ -104,9 +92,13 @@ export default function LoginScreen() {
           <h1
             style={{
               margin: 0,
-              color: "var(--warm-white)",
+
+              color: "var(--brown)",
+
               fontFamily: "Playfair Display, serif",
+
               fontSize: 37,
+
               fontWeight: 500,
             }}
           >
@@ -119,20 +111,30 @@ export default function LoginScreen() {
         className="fade-up"
         style={{
           flex: 1,
-          padding: "44px 28px 28px",
+
+          padding: "8px 28px 28px",
+
           display: "flex",
+
           flexDirection: "column",
+
           textAlign: "center",
+
           animationDelay: "0.12s",
         }}
       >
         <p
           style={{
             margin: 0,
+
             color: "var(--gold)",
+
             fontSize: 10,
+
             fontWeight: 600,
+
             letterSpacing: "0.25em",
+
             textTransform: "uppercase",
           }}
         >
@@ -142,9 +144,13 @@ export default function LoginScreen() {
         <h2
           style={{
             margin: "14px 0 12px",
+
             fontFamily: "Playfair Display, serif",
+
             fontSize: 27,
+
             fontWeight: 500,
+
             lineHeight: 1.3,
           }}
         >
@@ -156,9 +162,13 @@ export default function LoginScreen() {
         <p
           style={{
             margin: 0,
+
             color: "rgba(46,26,14,0.58)",
+
             fontSize: 13,
+
             fontWeight: 300,
+
             lineHeight: 1.7,
           }}
         >
@@ -170,6 +180,7 @@ export default function LoginScreen() {
         <div
           style={{
             marginTop: "auto",
+
             paddingTop: 36,
           }}
         >
@@ -180,20 +191,35 @@ export default function LoginScreen() {
             aria-label="Google 계정으로 계속하기"
             style={{
               width: "100%",
+
               height: 56,
+
               background: "var(--warm-white)",
+
               border: "1px solid rgba(46,26,14,0.22)",
+
               borderRadius: 2,
+
               color: "var(--brown)",
+
               display: "flex",
+
               alignItems: "center",
+
               justifyContent: "center",
+
               gap: 12,
+
               fontFamily: "Outfit, sans-serif",
+
               fontSize: 14,
+
               fontWeight: 500,
+
               cursor: isLoading ? "wait" : "pointer",
+
               opacity: isLoading ? 0.65 : 1,
+
               boxShadow: "0 8px 24px rgba(46,26,14,0.07)",
             }}
           >
@@ -202,9 +228,13 @@ export default function LoginScreen() {
                 className="spin-slow"
                 style={{
                   width: 18,
+
                   height: 18,
+
                   border: "2px solid var(--cream-dark)",
+
                   borderTopColor: "var(--brown)",
+
                   borderRadius: "50%",
                 }}
               />
@@ -218,8 +248,11 @@ export default function LoginScreen() {
           <p
             style={{
               margin: "18px 8px 0",
+
               color: "rgba(46,26,14,0.42)",
+
               fontSize: 10,
+
               lineHeight: 1.6,
             }}
           >
@@ -228,5 +261,5 @@ export default function LoginScreen() {
         </div>
       </section>
     </main>
-  );
+  )
 }

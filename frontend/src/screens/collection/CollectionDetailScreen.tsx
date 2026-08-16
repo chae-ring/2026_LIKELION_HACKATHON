@@ -33,7 +33,7 @@ const WARRANTY_STATUS_LABEL: Record<
 function toCertificate(detail: CollectionDetailResponse): Certificate {
   return {
     product: {
-      id: String(detail.product.id),
+      id: detail.product.id,
       name: detail.product.name,
       model: detail.product.model ?? "",
       color: detail.product.color,
