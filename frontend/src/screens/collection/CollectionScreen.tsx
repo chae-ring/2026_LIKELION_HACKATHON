@@ -1,51 +1,54 @@
-import { useEffect, useRef, useState } from "react"
-import CertificateCard from "../../components/certificate/CertificateCard"
-import PrimaryButton from "../../components/common/PrimaryButton"
-import SecondaryButton from "../../components/common/SecondaryButton"
-import StepIndicator from "../../components/common/StepIndicator"
+import { useEffect, useState } from "react"
 import TopBar from "../../components/common/TopBar"
-import VisetosPattern from "../../components/decoration/VisetosPattern"
-import { ARTWORK_URLS } from "../../constants/artworks"
-import { RECOMMENDED } from "../../constants/recommendations"
-import { CARE_TIPS, WARRANTY_STATUS_LABEL } from "../../constants/warranty"
-import type { Certificate, Emotion, Product } from "../../types"
-import { formatDate } from "../../utils/date"
-import { getWarrantyInfo } from "../../utils/warranty"
+import { ApiError } from "../../api/client"
+import { getCollectionList } from "../../api/collection"
+import type { CollectionListItem } from "../../api/types"
 
 export default function CollectionScreen({
-  certs,
-
   onBack,
-
   onDetail,
 }: {
-  certs: Certificate[]
-
   onBack: () => void
-
-  onDetail: (cert: Certificate) => void
+  onDetail: (item: { artworkId: number; userProductId: number }) => void
 }) {
-  // 서버 응답을 시뮬레이션: 생성 시각 내림차순 정렬 + 600ms 로딩
-
   const [loading, setLoading] = useState(true)
-
-  const [sorted, setSorted] = useState<Certificate[]>([])
+  const [items, setItems] = useState<CollectionListItem[]>([])
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    setLoading(true)
+    let cancelled = false
 
-    const t = setTimeout(() => {
-      setSorted(
-        [...certs].sort(
-          (a, b) => b.registeredAt.getTime() - a.registeredAt.getTime(),
-        ),
-      )
+    ;(async () => {
+      setLoading(true)
+      setError("")
 
-      setLoading(false)
-    }, 600)
+      try {
+        const res = await getCollectionList()
+        if (cancelled) return
 
-    return () => clearTimeout(t)
-  }, [certs])
+        // 최신순 정렬
+        const sorted = [...res.items].sort(
+          (a, b) =>
+            new Date(b.registeredAt).getTime() -
+            new Date(a.registeredAt).getTime(),
+        )
+        setItems(sorted)
+      } catch (err) {
+        if (cancelled) return
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "컬렉션을 불러오는 중 오류가 발생했습니다.",
+        )
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <div
@@ -89,7 +92,7 @@ export default function CollectionScreen({
           >
             {loading
               ? "불러오는 중…"
-              : `${sorted.length}개의 디지털 보증서 · 최신순`}
+              : `${items.length}개의 디지털 보증서 · 최신순`}
           </p>
         </div>
       </div>
@@ -139,8 +142,23 @@ export default function CollectionScreen({
         </div>
       )}
 
+      {/* 에러 */}
+      {!loading && error && (
+        <div style={{ padding: "24px" }}>
+          <p
+            style={{
+              fontFamily: "Outfit, sans-serif",
+              fontSize: 13,
+              color: "#c0392b",
+            }}
+          >
+            {error}
+          </p>
+        </div>
+      )}
+
       {/* 빈 상태 */}
-      {!loading && sorted.length === 0 && (
+      {!loading && !error && items.length === 0 && (
         <div
           style={{
             flex: 1,
@@ -157,17 +175,13 @@ export default function CollectionScreen({
               width: 72,
               height: 72,
               borderRadius: "50%",
-
               background: "var(--cream-dark)",
-
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-
               fontFamily: "Playfair Display, serif",
               fontSize: 28,
               color: "var(--brown-light)",
-
               marginBottom: 20,
             }}
           >
@@ -200,7 +214,7 @@ export default function CollectionScreen({
       )}
 
       {/* 목록 */}
-      {!loading && sorted.length > 0 && (
+      {!loading && !error && items.length > 0 && (
         <div
           style={{
             padding: "0 24px 40px",
@@ -209,74 +223,63 @@ export default function CollectionScreen({
             gap: 16,
           }}
         >
-          {sorted.map((cert, i) => {
-            const { status } = getWarrantyInfo(cert)
-
-            const badge = WARRANTY_STATUS_LABEL[status]
-
-            return (
+          {items.map((item) => (
+            <div
+              key={item.artworkId}
+              onClick={() =>
+                onDetail({
+                  artworkId: item.artworkId,
+                  userProductId: item.userProductId,
+                })
+              }
+              style={{ cursor: "pointer" }}
+            >
               <div
-                key={i}
-                onClick={() => onDetail(cert)}
-                style={{ cursor: "pointer" }}
+                style={{
+                  aspectRatio: "1/1",
+                  borderRadius: 4,
+                  overflow: "hidden",
+                  marginBottom: 8,
+                  background: "var(--brown)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                {/* 썸네일 카드 */}
-                <div
+                <span
                   style={{
-                    borderRadius: 4,
-                    overflow: "hidden",
-                    marginBottom: 8,
-                    position: "relative",
+                    fontFamily: "Playfair Display, serif",
+                    fontSize: 28,
+                    color: "var(--gold)",
                   }}
                 >
-                  <CertificateCard cert={cert} mini />
-                  {/* AS 상태 뱃지 */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 8,
-                      left: 8,
-
-                      padding: "3px 7px",
-                      borderRadius: 2,
-
-                      background: badge.bg,
-
-                      fontFamily: "Outfit, sans-serif",
-                      fontSize: 9,
-
-                      color: badge.color,
-                      letterSpacing: "0.06em",
-                    }}
-                  >
-                    {badge.label}
-                  </div>
-                </div>
-                <p
-                  style={{
-                    margin: "0 0 2px",
-                    fontFamily: "Outfit, sans-serif",
-                    fontSize: 12,
-                    color: "var(--brown)",
-                    fontWeight: 500,
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {cert.product.name}
-                </p>
-                <p
-                  style={{
-                    margin: 0,
-                    fontFamily: "Outfit, sans-serif",
-                    fontSize: 10,
-                    color: "var(--brown-light)",
-                  }}
-                >
-                  {cert.createdAt}
-                </p>
+                  ✦
+                </span>
               </div>
-            )
-          })}
+              <p
+                style={{
+                  margin: "0 0 2px",
+                  fontFamily: "Outfit, sans-serif",
+                  fontSize: 12,
+                  color: "var(--brown)",
+                  fontWeight: 500,
+                  lineHeight: 1.3,
+                }}
+              >
+                {item.productName}
+              </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontFamily: "Outfit, sans-serif",
+                  fontSize: 10,
+                  color: "var(--brown-light)",
+                }}
+              >
+                {new Date(item.registeredAt).toLocaleDateString("ko-KR")}
+              </p>
+            </div>
+          ))}
         </div>
       )}
     </div>

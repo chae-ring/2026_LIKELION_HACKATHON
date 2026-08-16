@@ -31,24 +31,12 @@ export async function apiRequest<T>(
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    /**
-     * Google OAuth 로그인 성공 후
-     * App.tsx에서 저장한 JWT
-     */
     const accessToken = localStorage.getItem("accessToken");
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
 
-    /**
-     * JWT가 있으면 모든 API 요청에
-     *
-     * Authorization:
-     * Bearer eyJ...
-     *
-     * 형태로 자동으로 붙인다.
-     */
     if (accessToken) {
       headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -76,9 +64,6 @@ export async function apiRequest<T>(
         // 기본 메시지 사용
       }
 
-      /**
-       * JWT 만료 또는 인증 실패
-       */
       if (res.status === 401 || res.status === 403) {
         console.warn("인증이 만료되었거나 권한이 없습니다.");
       }
@@ -86,9 +71,6 @@ export async function apiRequest<T>(
       throw new ApiError(message, "HTTP_ERROR", res.status);
     }
 
-    /**
-     * 응답 body가 없는 경우 처리
-     */
     if (res.status === 204) {
       return undefined as T;
     }
@@ -111,4 +93,16 @@ export async function apiRequest<T>(
 
 export function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function resolveAssetUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("data:")
+  ) {
+    return url;
+  }
+  return `${API_BASE_URL}${url}`;
 }

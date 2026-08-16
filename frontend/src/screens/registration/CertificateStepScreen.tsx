@@ -17,15 +17,15 @@ export default function CertificateStepScreen({
   product,
   story,
   emotions,
-  registrationId,
+  userProductId,
   onNext,
   onBack,
 }: {
   product: Product
   story: string
   emotions: Emotion[]
-  registrationId: string
-  onNext: (cert: Certificate) => void
+  userProductId: number
+  onNext: () => void
   onBack: () => void
 }) {
   const [phase, setPhase] = useState<Phase>("loading")
@@ -43,17 +43,17 @@ export default function CertificateStepScreen({
     ;(async () => {
       try {
         // ART-001: 아트워크 생성 요청
-        const { jobId } = await requestArtwork({ registrationId })
+        const { artworkId } = await requestArtwork(userProductId)
 
         // ART-002: 상태 폴링 (30초 타임아웃 포함)
-        const result = await pollArtworkStatus(jobId, {
+        const result = await pollArtworkStatus(artworkId, {
           timeoutMs: 30000,
           signal,
         })
 
         if (signal.cancelled) return
 
-        if (result.status === "success" && result.artworkUrl) {
+        if (result.status === "COMPLETED" && result.artworkUrl) {
           const now = new Date()
           setCert({
             product,
@@ -65,7 +65,7 @@ export default function CertificateStepScreen({
           })
           setPhase("success")
         } else {
-          setErrorMessage(result.errorMessage ?? "아트워크 생성에 실패했습니다.")
+          setErrorMessage("아트워크 생성에 실패했습니다.")
           setPhase("fail")
         }
       } catch (err) {
@@ -89,7 +89,7 @@ export default function CertificateStepScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 대체 아트워크로 진행 (재시도 대신, 미리 준비된 이미지로 바로 완료 처리)
+  // 기획서 리스크 대응: 실패 시 사전 생성된 대체 아트워크로 진행
   const useFallbackArtwork = () => {
     const now = new Date()
     setCert({
@@ -146,7 +146,6 @@ export default function CertificateStepScreen({
       </div>
 
       <div style={{ padding: "28px 24px 0", flex: 1 }}>
-        {/* Loading state */}
         {phase === "loading" && (
           <div>
             <div
@@ -238,7 +237,6 @@ export default function CertificateStepScreen({
           </div>
         )}
 
-        {/* Success */}
         {phase === "success" && cert && (
           <div className="fade-up">
             <CertificateCard cert={cert} />
@@ -268,7 +266,6 @@ export default function CertificateStepScreen({
           </div>
         )}
 
-        {/* Fail */}
         {phase === "fail" && (
           <div className="fade-up">
             <div
@@ -306,7 +303,14 @@ export default function CertificateStepScreen({
                 </p>
               </div>
             </div>
-            <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+            <div
+              style={{
+                marginTop: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
               <PrimaryButton onClick={runArtworkGeneration}>
                 다시 시도하기
               </PrimaryButton>
@@ -320,9 +324,7 @@ export default function CertificateStepScreen({
 
       {phase === "success" && cert && (
         <div style={{ padding: "24px", marginTop: "auto" }}>
-          <PrimaryButton onClick={() => onNext(cert)}>
-            추천 상품 보기
-          </PrimaryButton>
+          <PrimaryButton onClick={onNext}>추천 상품 보기</PrimaryButton>
         </div>
       )}
     </div>
