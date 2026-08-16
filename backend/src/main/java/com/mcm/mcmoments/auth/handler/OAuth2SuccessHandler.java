@@ -3,7 +3,6 @@ package com.mcm.mcmoments.auth.handler;
 import com.mcm.mcmoments.global.jwt.JwtProvider;
 import com.mcm.mcmoments.user.entity.User;
 import com.mcm.mcmoments.user.repository.UserRepository;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +12,13 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
-public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
+public class OAuth2SuccessHandler
+        implements AuthenticationSuccessHandler {
 
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
@@ -26,43 +28,74 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             HttpServletRequest request,
             HttpServletResponse response,
             Authentication authentication
-    ) throws IOException, ServletException {
+    ) throws IOException {
 
+        /*
+         * Google 로그인 사용자 정보
+         */
         OAuth2User oauth2User =
                 (OAuth2User) authentication.getPrincipal();
 
         System.out.println(
-                "Google attributes = " + oauth2User.getAttributes()
+                "Google attributes = "
+                        + oauth2User.getAttributes()
         );
 
-        String googleId = oauth2User.getAttribute("sub");
+        /*
+         * Google 고유 사용자 ID
+         */
+        String googleId =
+                oauth2User.getAttribute("sub");
 
-        User user = userRepository.findByGoogleId(googleId)
-                .orElseThrow(() ->
-                        new IllegalStateException(
-                                "사용자를 찾을 수 없습니다."
-                        )
+        /*
+         * CustomOAuth2UserService에서
+         * DB에 저장한 사용자 조회
+         */
+        User user =
+                userRepository
+                        .findByGoogleId(googleId)
+                        .orElseThrow(
+                                () ->
+                                        new IllegalStateException(
+                                                "사용자를 찾을 수 없습니다."
+                                        )
+                        );
+
+        /*
+         * JWT 발급
+         */
+        String accessToken =
+                jwtProvider
+                        .createAccessToken(user);
+
+        /*
+         * URL에 들어갈 수 있도록 인코딩
+         */
+        String encodedToken =
+                URLEncoder.encode(
+                        accessToken,
+                        StandardCharsets.UTF_8
                 );
 
-        String accessToken =
-                jwtProvider.createAccessToken(user);
+        /*
+         * 프론트 개발 서버
+         *
+         * 현재 Vite:
+         * http://localhost:8443
+         */
+        String redirectUrl =
+                "http://localhost:8443"
+                        + "/?accessToken="
+                        + encodedToken
+                        + "&userId="
+                        + user.getId();
 
-        response.setContentType(
-                "application/json;charset=UTF-8"
-        );
-
-        response.getWriter().write(
-                """
-                {
-                    "accessToken": "%s",
-                    "userId": %d,
-                    "email": "%s"
-                }
-                """.formatted(
-                        accessToken,
-                        user.getId(),
-                        user.getEmail()
-                )
+        /*
+         * JSON을 출력하는 게 아니라
+         * 프론트로 다시 이동
+         */
+        response.sendRedirect(
+                redirectUrl
         );
     }
 }
