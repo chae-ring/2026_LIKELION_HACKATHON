@@ -2,18 +2,23 @@ import { useState } from "react"
 import PrimaryButton from "../../components/common/PrimaryButton"
 import StepIndicator from "../../components/common/StepIndicator"
 import TopBar from "../../components/common/TopBar"
+import { submitStory } from "../../api/story"
+import { ApiError } from "../../api/client"
 import type { Emotion } from "../../types"
 
 export default function StoryStepScreen({
+  registrationId,
   onBack,
   onNext,
 }: {
+  registrationId: string
   onBack: () => void
   onNext: (story: string, emotions: Emotion[]) => void
 }) {
   const [story, setStory] = useState("")
   const [emotions, setEmotions] = useState<Emotion[]>([])
   const [error, setError] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   const EMOTIONS: Emotion[] = ["기쁨", "자부심", "설렘", "감사"]
   const MAX = 500
@@ -25,7 +30,7 @@ export default function StoryStepScreen({
     )
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (story.length < MIN) {
       setError(`최소 ${MIN}자 이상 작성해 주세요. (현재 ${story.length}자)`)
       return
@@ -36,7 +41,21 @@ export default function StoryStepScreen({
       return
     }
 
-    onNext(story, emotions)
+    setSubmitting(true)
+    setError("")
+
+    try {
+      await submitStory({ registrationId, story, emotions })
+      onNext(story, emotions)
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "구매 사연 등록 중 오류가 발생했습니다.",
+      )
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -84,6 +103,7 @@ export default function StoryStepScreen({
       </div>
 
       <div style={{ padding: "28px 24px 0", flex: 1 }}>
+        {/* Textarea */}
         <div style={{ position: "relative" }}>
           <textarea
             value={story}
@@ -133,6 +153,7 @@ export default function StoryStepScreen({
           </p>
         )}
 
+        {/* Emotion chips */}
         <div style={{ marginTop: 24 }}>
           <p
             style={{
@@ -178,8 +199,11 @@ export default function StoryStepScreen({
       </div>
 
       <div style={{ padding: "24px", marginTop: "auto" }}>
-        <PrimaryButton onClick={handleNext} disabled={story.length < MIN}>
-          아트워크 만들기
+        <PrimaryButton
+          onClick={handleNext}
+          disabled={story.length < MIN || submitting}
+        >
+          {submitting ? "등록 중..." : "아트워크 만들기"}
         </PrimaryButton>
       </div>
     </div>

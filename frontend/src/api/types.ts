@@ -1,75 +1,38 @@
-// ─── PRD-001: 시리얼 번호 검증 ─────────────────────────────────────────────
+import type { Emotion } from "../types"
 
-export interface VerifySerialRequest {
-  serialNumber: string
-}
+// ─── PRD-001: 시리얼 번호 검증 (효빈님 담당, 옛날 타입 그대로 유지) ────────
 
-export interface VerifySerialProduct {
-  id: number
+export interface VerifySerialResponse {
+  productId: string
   name: string
-  model: string | null
+  model: string
   color: string
   category: string
   imageUrl: string
 }
 
-export interface VerifySerialResponse {
-  valid: boolean
-  product: VerifySerialProduct | null
-}
-
-// ─── PRD-002: 사용자 제품 등록 ─────────────────────────────────────────────
+// ─── PRD-002: 사용자 제품 등록 (효빈님 담당) ────────────────────────────
 
 export interface RegisterProductRequest {
-  serialNumber: string
-  purchaseDate: string // YYYY-MM-DD
+  productId: string
+  serial: string
+  purchaseDate: string
 }
 
 export interface RegisterProductResponse {
-  userProductId: number
-  product: {
-    id: number
-    name: string
-    color: string
-    category: string
-  }
-  purchaseDate: string
-  warrantyExpiresAt: string | null
-  registeredAt: string
+  registrationId: string
 }
 
-// ─── STORY-001: 구매 사연/감정 등록 ────────────────────────────────────────
-
-// 백엔드 Emotion enum (story/entity/Emotion.java) 값 그대로
-export type EmotionCode =
-  | "JOY"
-  | "PRIDE"
-  | "EXCITEMENT"
-  | "GRATITUDE"
-  | "HAPPINESS"
-  | "SATISFACTION"
-  | "LOVE"
-  | "AFFECTION"
-  | "NOSTALGIA"
-  | "COMFORT"
-  | "CONFIDENCE"
-  | "ACHIEVEMENT"
-  | "RELIEF"
-  | "SURPRISE"
-  | "ANTICIPATION"
-  | "SENTIMENTAL"
+// ─── STORY-001: 구매 사연/감정 등록 (효빈님 담당) ────────────────────────
 
 export interface SubmitStoryRequest {
-  content: string
-  emotions: EmotionCode[]
+  registrationId: string
+  story: string
+  emotions: Emotion[]
 }
 
 export interface SubmitStoryResponse {
-  storyId: number
-  userProductId: number
-  content: string
-  emotions: EmotionCode[]
-  createdAt: string
+  storyId: string
 }
 
 // ─── ART-001 / ART-002: 아트워크 생성 및 상태 조회 ─────────────────────────
@@ -121,14 +84,13 @@ export interface CollectionDetailResponse {
   }
   story: {
     content: string
-    emotions: EmotionCode[]
+    emotions: string[]
   }
   createdAt: string
 }
 
 // ─── COL-003: AS 상태 및 관리 방법 ─────────────────────────────────────────
 
-// 백엔드 AftercareResponse.WarrantyStatus enum 그대로
 export type WarrantyStatusCode = "ACTIVE" | "EXPIRING" | "EXPIRED" | "UNKNOWN"
 
 export interface AftercareResponse {

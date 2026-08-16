@@ -38,3 +38,7 @@ out/
 
 ### Application Properties ###
 src/main/resources/application.properties
+src/main/resources/application-local.yml
+### Local dev artifacts ###
+*.log
+**/_to_delete/
