@@ -3,8 +3,8 @@ import CertificateCard from "../../components/certificate/CertificateCard"
 import PrimaryButton from "../../components/common/PrimaryButton"
 import TopBar from "../../components/common/TopBar"
 import { getAftercare, getCollectionDetail } from "../../api/collection"
+import { toEmotionLabel } from "../../api/collection-emotion-label"
 import { ApiError } from "../../api/client"
-import { emotionCodeToKorean } from "../../api/emotion-map"
 import type { AftercareResponse, CollectionDetailResponse } from "../../api/types"
 import type { Certificate, Emotion } from "../../types"
 
@@ -42,7 +42,7 @@ function toCertificate(detail: CollectionDetailResponse): Certificate {
       imageUrl: "",
     },
     story: detail.story.content,
-    emotions: detail.story.emotions.map(emotionCodeToKorean) as Emotion[],
+    emotions: detail.story.emotions.map(toEmotionLabel) as Emotion[],
     artworkUrl: detail.artworkUrl,
     createdAt: new Date(detail.createdAt).toLocaleDateString("ko-KR", {
       year: "numeric",
