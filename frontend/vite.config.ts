@@ -1,19 +1,19 @@
-import { defineConfig, type HtmlTagDescriptor, type Plugin } from "vite"
+import { defineConfig, type HtmlTagDescriptor, type Plugin } from "vite";
 
-import react from "@vitejs/plugin-react"
+import react from "@vitejs/plugin-react";
 
-import tailwindcss from "@tailwindcss/vite"
+import tailwindcss from "@tailwindcss/vite";
 
-import path from "node:path"
+import path from "node:path";
 
-import siteConfiguration from "./.figma/make/site.json"
+import siteConfiguration from "./.figma/make/site.json";
 
 // Vite config — https://vitejs.dev/config/
 
 export default defineConfig(({ mode }) => {
   // .figma/make/deploy-preview passes `--mode development` for cached-preview builds.
 
-  const emitSourcemaps = mode === "development"
+  const emitSourcemaps = mode === "development";
 
   return {
     base: process.env.FIGMA_PUBLIC_URL
@@ -53,7 +53,16 @@ export default defineConfig(({ mode }) => {
 
       strictPort: true,
 
-      watch: { ignored: ["**/.figma/**"] },
+      proxy: {
+        "/api": {
+          target: "http://localhost:8080",
+          changeOrigin: true,
+        },
+      },
+
+      watch: {
+        ignored: ["**/.figma/**"],
+      },
     },
 
     preview: {
@@ -61,59 +70,59 @@ export default defineConfig(({ mode }) => {
 
       port: parseInt(process.env.PORT || "8443"),
     },
-  }
-})
+  };
+});
 
 type FigmaSiteConfiguration = {
-  title?: string
+  title?: string;
 
-  description?: string
+  description?: string;
 
-  language?: string
+  language?: string;
 
   robots?: {
-    index?: boolean
-  }
+    index?: boolean;
+  };
 
   icons?: {
-    icon?: string
-  }
+    icon?: string;
+  };
 
   openGraph?: {
-    image?: string
-  }
+    image?: string;
+  };
 
   analytics?: {
-    googleAnalyticsId?: string
-  }
+    googleAnalyticsId?: string;
+  };
 
   customScripts?: {
-    headStart?: string
+    headStart?: string;
 
-    headEnd?: string
+    headEnd?: string;
 
-    bodyStart?: string
+    bodyStart?: string;
 
-    bodyEnd?: string
-  }
+    bodyEnd?: string;
+  };
 
   accessibility?: {
-    addBypassLinks?: boolean
-  }
-}
+    addBypassLinks?: boolean;
+  };
+};
 
 /** Applies /.figma/make/site.json to the generated document shell. */
 
 function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
   function sanitizeHtmlValue(value: string | undefined): string {
-    return value?.replace(/[^a-zA-Z0-9_-]/g, "") || ""
+    return value?.replace(/[^a-zA-Z0-9_-]/g, "") || "";
   }
 
   function escapeHtmlText(value: string): string {
     return value
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
+      .replace(/>/g, "&gt;");
   }
 
   function replaceHtmlCommentSlot(
@@ -121,33 +130,33 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
     slotName: string,
     content: string,
   ): string {
-    return html.replace(`<!-- ${slotName} -->`, content)
+    return html.replace(`<!-- ${slotName} -->`, content);
   }
 
-  const title = config.title ?? "Figma Make App"
+  const title = config.title ?? "Figma Make App";
 
-  const description = config.description ?? ""
+  const description = config.description ?? "";
 
-  const favicon = config.icons?.icon ?? ""
+  const favicon = config.icons?.icon ?? "";
 
-  const socialImage = config.openGraph?.image ?? ""
+  const socialImage = config.openGraph?.image ?? "";
 
-  const language = sanitizeHtmlValue(config.language) || "en"
+  const language = sanitizeHtmlValue(config.language) || "en";
 
   const googleAnalyticsId = sanitizeHtmlValue(
     config.analytics?.googleAnalyticsId,
-  )
+  );
 
-  const headStart = config.customScripts?.headStart ?? ""
+  const headStart = config.customScripts?.headStart ?? "";
 
-  const headEnd = config.customScripts?.headEnd ?? ""
+  const headEnd = config.customScripts?.headEnd ?? "";
 
-  const bodyStart = config.customScripts?.bodyStart ?? ""
+  const bodyStart = config.customScripts?.bodyStart ?? "";
 
-  const bodyEnd = config.customScripts?.bodyEnd ?? ""
+  const bodyEnd = config.customScripts?.bodyEnd ?? "";
 
   const robotsTxt =
-    config.robots?.index === false ? "User-agent: *\nDisallow: /\n" : ""
+    config.robots?.index === false ? "User-agent: *\nDisallow: /\n" : "";
 
   return {
     name: "figma-site-configuration",
@@ -155,16 +164,16 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         if (!robotsTxt || req.url?.split("?")[0] !== "/robots.txt")
-          return next()
+          return next();
 
-        res.setHeader("Content-Type", "text/plain; charset=utf-8")
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
 
-        res.end(robotsTxt)
-      })
+        res.end(robotsTxt);
+      });
     },
 
     generateBundle() {
-      if (!robotsTxt) return
+      if (!robotsTxt) return;
 
       this.emitFile({
         type: "asset",
@@ -172,39 +181,39 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
         fileName: "robots.txt",
 
         source: robotsTxt,
-      })
+      });
     },
 
     transformIndexHtml: {
       order: "pre",
 
       handler(html) {
-        let result = html
+        let result = html;
 
-        result = replaceHtmlCommentSlot(result, "figma:lang", language)
+        result = replaceHtmlCommentSlot(result, "figma:lang", language);
 
         result = replaceHtmlCommentSlot(
           result,
           "figma:title",
           escapeHtmlText(title),
-        )
+        );
 
-        result = replaceHtmlCommentSlot(result, "figma:head-start", headStart)
+        result = replaceHtmlCommentSlot(result, "figma:head-start", headStart);
 
-        result = replaceHtmlCommentSlot(result, "figma:head-end", headEnd)
+        result = replaceHtmlCommentSlot(result, "figma:head-end", headEnd);
 
-        result = replaceHtmlCommentSlot(result, "figma:body-start", bodyStart)
+        result = replaceHtmlCommentSlot(result, "figma:body-start", bodyStart);
 
-        result = replaceHtmlCommentSlot(result, "figma:body-end", bodyEnd)
+        result = replaceHtmlCommentSlot(result, "figma:body-end", bodyEnd);
 
-        const tags: HtmlTagDescriptor[] = []
+        const tags: HtmlTagDescriptor[] = [];
 
         if (description) {
           tags.push({
             tag: "meta",
             attrs: { name: "description", content: description },
             injectTo: "head",
-          })
+          });
         }
 
         if (config.robots?.index === false) {
@@ -212,7 +221,7 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
             tag: "meta",
             attrs: { name: "robots", content: "noindex, nofollow" },
             injectTo: "head",
-          })
+          });
         }
 
         if (favicon) {
@@ -220,7 +229,7 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
             tag: "link",
             attrs: { rel: "icon", href: favicon },
             injectTo: "head",
-          })
+          });
         }
 
         if (title) {
@@ -228,7 +237,7 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
             tag: "meta",
             attrs: { property: "og:title", content: title },
             injectTo: "head",
-          })
+          });
         }
 
         if (description) {
@@ -236,7 +245,7 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
             tag: "meta",
             attrs: { property: "og:description", content: description },
             injectTo: "head",
-          })
+          });
         }
 
         if (socialImage) {
@@ -258,7 +267,7 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
               attrs: { name: "twitter:image", content: socialImage },
               injectTo: "head",
             },
-          )
+          );
         }
 
         if (googleAnalyticsId) {
@@ -287,7 +296,7 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
 
               injectTo: "head",
             },
-          )
+          );
         }
 
         if (config.accessibility?.addBypassLinks) {
@@ -326,17 +335,17 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
 
               injectTo: "body-prepend",
             },
-          )
+          );
         }
 
         return {
           html: result,
 
           tags,
-        }
+        };
       },
     },
-  }
+  };
 }
 
 /**
@@ -360,35 +369,35 @@ function figmaErrorOverlayReplay(): Plugin {
     apply: "serve",
 
     configureServer(server) {
-      let lastError: object | null = null
+      let lastError: object | null = null;
 
       const origSend = server.ws.send.bind(server.ws) as (
         ...args: any[]
-      ) => void
+      ) => void;
 
-      server.ws.send = (((...args: any[]) => {
-        const payload = args[0]
+      server.ws.send = ((...args: any[]) => {
+        const payload = args[0];
 
         if (payload && typeof payload === "object" && !Array.isArray(payload)) {
-          const type = (payload as { type?: string }).type
+          const type = (payload as { type?: string }).type;
 
           if (type === "error") {
-            lastError = (payload as object)
+            lastError = payload as object;
           } else if (type === "update" || type === "full-reload") {
-            lastError = null
+            lastError = null;
           }
         }
 
-        return origSend(...args)
-      }) as typeof server.ws.send)
+        return origSend(...args);
+      }) as typeof server.ws.send;
 
       server.ws.on("connection", (socket) => {
         if (lastError !== null) {
-          socket.send(JSON.stringify(lastError))
+          socket.send(JSON.stringify(lastError));
         }
-      })
+      });
     },
-  }
+  };
 }
 
 /**
@@ -405,9 +414,9 @@ function figmaErrorOverlayReplay(): Plugin {
  */
 
 function figmaReactRefreshBoundaryFallback(): Plugin {
-  const hadRefreshBoundary = new Map<string, boolean>()
+  const hadRefreshBoundary = new Map<string, boolean>();
 
-  let sendFullReload: (() => void) | null = null
+  let sendFullReload: (() => void) | null = null;
 
   return {
     name: "figma-react-refresh-boundary-fallback",
@@ -417,28 +426,30 @@ function figmaReactRefreshBoundaryFallback(): Plugin {
     enforce: "post",
 
     configureServer(server) {
-      sendFullReload = () => server.ws.send({ type: "full-reload", path: "*" })
+      sendFullReload = () => server.ws.send({ type: "full-reload", path: "*" });
     },
 
     transform(code, id) {
       if (!/\.[jt]sx?(?:\?|$)/.test(id) || id.includes("/node_modules/"))
-        return null
+        return null;
 
-      const moduleId = id.split("?")[0] ?? id
+      const moduleId = id.split("?")[0] ?? id;
 
-      const hasRefreshBoundary = code.includes("registerExportsForReactRefresh")
+      const hasRefreshBoundary = code.includes(
+        "registerExportsForReactRefresh",
+      );
 
-      const previousHadRefreshBoundary = hadRefreshBoundary.get(moduleId)
+      const previousHadRefreshBoundary = hadRefreshBoundary.get(moduleId);
 
-      hadRefreshBoundary.set(moduleId, hasRefreshBoundary)
+      hadRefreshBoundary.set(moduleId, hasRefreshBoundary);
 
       if (previousHadRefreshBoundary && !hasRefreshBoundary) {
-        queueMicrotask(() => sendFullReload?.())
+        queueMicrotask(() => sendFullReload?.());
       }
 
-      return null
+      return null;
     },
-  }
+  };
 }
 
 /**
@@ -454,19 +465,19 @@ function figmaReactRefreshBoundaryFallback(): Plugin {
  */
 
 function figmaMakeKitPlugin(options: {
-  storiesGlob: string | string[]
+  storiesGlob: string | string[];
 }): Plugin {
   const storiesGlob = Array.isArray(options.storiesGlob)
     ? options.storiesGlob
-    : [options.storiesGlob]
+    : [options.storiesGlob];
 
-  const ROUTE = "/.figma/make/kit.html"
+  const ROUTE = "/.figma/make/kit.html";
 
-  const VIRTUAL_ID = "virtual:figma-stories"
+  const VIRTUAL_ID = "virtual:figma-stories";
 
-  const RESOLVED_ID = "\0" + VIRTUAL_ID
+  const RESOLVED_ID = "\0" + VIRTUAL_ID;
 
-  const STORIES_MODULE = `export const stories = import.meta.glob(${JSON.stringify(storiesGlob)})`
+  const STORIES_MODULE = `export const stories = import.meta.glob(${JSON.stringify(storiesGlob)})`;
 
   const HTML_BOOTSTRAP = `<!doctype html>
 <html lang="en">
@@ -482,7 +493,7 @@ function figmaMakeKitPlugin(options: {
   window.dispatchEvent(new CustomEvent('figma.ready'))
 </script>
 </body>
-</html>`
+</html>`;
 
   return {
     name: "figma-make-kit",
@@ -490,31 +501,31 @@ function figmaMakeKitPlugin(options: {
     apply: "serve",
 
     resolveId(id) {
-      if (id === VIRTUAL_ID) return RESOLVED_ID
+      if (id === VIRTUAL_ID) return RESOLVED_ID;
 
-      return null
+      return null;
     },
 
     load(id) {
-      if (id !== RESOLVED_ID) return null
+      if (id !== RESOLVED_ID) return null;
 
-      return STORIES_MODULE
+      return STORIES_MODULE;
     },
 
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        const url = req.url || ""
+        const url = req.url || "";
 
-        if (url.split("?")[0] !== ROUTE) return next()
+        if (url.split("?")[0] !== ROUTE) return next();
 
         try {
-          res.setHeader("Content-Type", "text/html")
+          res.setHeader("Content-Type", "text/html");
 
-          res.end(await server.transformIndexHtml(url, HTML_BOOTSTRAP))
+          res.end(await server.transformIndexHtml(url, HTML_BOOTSTRAP));
         } catch (err) {
-          next(err as Error)
+          next(err as Error);
         }
-      })
+      });
     },
-  }
+  };
 }
