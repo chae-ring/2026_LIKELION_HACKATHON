@@ -1,22 +1,16 @@
-﻿import { useEffect, useRef, useState } from "react"
-import CertificateCard from "../components/certificate/CertificateCard"
 import PrimaryButton from "../components/common/PrimaryButton"
+
 import SecondaryButton from "../components/common/SecondaryButton"
-import StepIndicator from "../components/common/StepIndicator"
-import TopBar from "../components/common/TopBar"
+
 import VisetosPattern from "../components/decoration/VisetosPattern"
-import { ARTWORK_URLS } from "../constants/artworks"
-import { RECOMMENDED } from "../constants/recommendations"
-import { CARE_TIPS, WARRANTY_STATUS_LABEL } from "../constants/warranty"
-import type { Certificate, Emotion, Product } from "../types"
-import { formatDate } from "../utils/date"
-import { getWarrantyInfo } from "../utils/warranty"
 
 export default function HomeScreen({
   onStart,
+
   onCollection,
 }: {
   onStart: () => void
+
   onCollection: () => void
 }) {
   return (
@@ -24,36 +18,28 @@ export default function HomeScreen({
       className="fade-up"
       style={{
         minHeight: "100vh",
+
         background: "var(--cream)",
+
         display: "flex",
+
         flexDirection: "column",
       }}
     >
       {/* Header brand */}
-      <div style={{ padding: "48px 24px 0", textAlign: "center" }}>
+      <div style={{ padding: "42px 28px 0" }}>
         <p
           style={{
             fontFamily: "Playfair Display, serif",
-            fontSize: 13,
 
-            letterSpacing: "0.35em",
+            fontSize: 19,
+
+            letterSpacing: "0.01em",
+
             color: "var(--brown)",
 
-            textTransform: "uppercase",
             margin: 0,
-          }}
-        >
-          MCM
-        </p>
-        <p
-          style={{
-            fontFamily: "Playfair Display, serif",
-            fontSize: 18,
 
-            letterSpacing: "0.02em",
-            color: "var(--brown)",
-
-            margin: "4px 0 0",
             fontWeight: 500,
           }}
         >
@@ -62,40 +48,42 @@ export default function HomeScreen({
       </div>
 
       {/* Hero text */}
-      <div style={{ padding: "36px 28px 24px" }}>
+      <div style={{ padding: "52px 28px 28px" }}>
         <h1
           style={{
             fontFamily: "Playfair Display, serif",
 
-            fontSize: 32,
+            fontSize: 34,
+
             fontWeight: 500,
+
             lineHeight: 1.25,
 
             color: "var(--brown)",
+
             margin: 0,
           }}
         >
-          나의 MCM
-          <br />
-          순간을
+          나의 MCM 순간을
           <br />
           기록하세요
         </h1>
         <p
           style={{
             fontFamily: "Outfit, sans-serif",
+
             fontSize: 14,
+
             lineHeight: 1.7,
 
             color: "var(--brown-light)",
-            margin: "14px 0 0",
+
+            margin: "18px 0 0",
           }}
         >
-          첫 MCM 제품과의 특별한 순간을 AI가
+          첫 MCM 제품과의 특별한 순간을
           <br />
-          Visetos 패턴으로 담은 디지털 아트워크로
-          <br />
-          영원히 간직하세요.
+          AI가 빚은 디지털 아트워크로 간직하세요.
         </p>
       </div>
 
@@ -104,9 +92,11 @@ export default function HomeScreen({
         <div
           style={{
             background: "var(--brown)",
+
             borderRadius: 6,
 
             overflow: "hidden",
+
             position: "relative",
 
             aspectRatio: "3/2",
@@ -118,29 +108,43 @@ export default function HomeScreen({
             alt="Sample digital artwork certificate"
             style={{
               position: "absolute",
+
               inset: 0,
+
               width: "100%",
+
               height: "100%",
+
               objectFit: "cover",
+
               opacity: 0.45,
+
               mixBlendMode: "luminosity",
             }}
           />
           <div
             style={{
               position: "absolute",
+
               inset: 0,
+
               padding: "20px 22px",
+
               display: "flex",
+
               flexDirection: "column",
+
               justifyContent: "space-between",
+
               zIndex: 1,
             }}
           >
             <div
               style={{
                 display: "flex",
+
                 justifyContent: "space-between",
+
                 alignItems: "flex-start",
               }}
             >
@@ -148,9 +152,13 @@ export default function HomeScreen({
                 <p
                   style={{
                     margin: 0,
+
                     fontFamily: "Playfair Display, serif",
+
                     fontSize: 11,
+
                     color: "var(--gold)",
+
                     letterSpacing: "0.2em",
                   }}
                 >
@@ -159,10 +167,15 @@ export default function HomeScreen({
                 <p
                   style={{
                     margin: "2px 0 0",
+
                     fontFamily: "Outfit, sans-serif",
+
                     fontSize: 8,
+
                     color: "rgba(253,250,244,0.4)",
+
                     letterSpacing: "0.15em",
+
                     textTransform: "uppercase",
                   }}
                 >
@@ -172,10 +185,13 @@ export default function HomeScreen({
               <span
                 style={{
                   border: "1px solid var(--gold)",
+
                   padding: "3px 8px",
 
                   fontFamily: "Outfit, sans-serif",
+
                   fontSize: 8,
+
                   color: "var(--gold)",
 
                   letterSpacing: "0.15em",
@@ -188,9 +204,13 @@ export default function HomeScreen({
               <p
                 style={{
                   margin: "0 0 2px",
+
                   fontFamily: "Playfair Display, serif",
+
                   fontSize: 15,
+
                   color: "var(--warm-white)",
+
                   fontWeight: 500,
                 }}
               >
@@ -199,8 +219,11 @@ export default function HomeScreen({
               <p
                 style={{
                   margin: 0,
+
                   fontFamily: "Outfit, sans-serif",
+
                   fontSize: 10,
+
                   color: "rgba(253,250,244,0.4)",
                 }}
               >
@@ -211,13 +234,16 @@ export default function HomeScreen({
         </div>
         <p
           style={{
-            textAlign: "center",
+            textAlign: "left",
+
             margin: "10px 0 0",
 
             fontFamily: "Outfit, sans-serif",
+
             fontSize: 10,
 
             color: "var(--brown-light)",
+
             letterSpacing: "0.06em",
           }}
         >
@@ -229,9 +255,13 @@ export default function HomeScreen({
       <div
         style={{
           padding: "0 24px 40px",
+
           display: "flex",
+
           flexDirection: "column",
+
           gap: 12,
+
           marginTop: "auto",
         }}
       >
@@ -245,4 +275,3 @@ export default function HomeScreen({
 }
 
 // 2. Step 1 – Serial Number
-
