@@ -29,7 +29,7 @@ public class ArtworkCertificate {
 
     // 최종 저장하기 전까지는 null 가능
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_product_id")
+    @JoinColumn(name = "user_product_id",  unique = true)
     private UserProduct userProduct;
 
     @Column(name = "artwork_url", columnDefinition = "TEXT")
