@@ -78,13 +78,10 @@ public class OAuth2SuccessHandler
                 );
 
         /*
-         * 프론트 개발 서버
-         *
-         * 현재 Vite:
-         * http://localhost:8443
+         * 배포된 프론트 주소
          */
         String redirectUrl =
-                "http://localhost:8443"
+                "https://bruce-plumbing-laugh-guarantee.trycloudflare.com"
                         + "/?accessToken="
                         + encodedToken
                         + "&userId="
