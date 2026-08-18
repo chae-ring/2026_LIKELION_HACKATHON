@@ -1,5 +1,7 @@
 package com.mcm.mcmoments.product.service;
 
+import com.mcm.mcmoments.artwork.entity.ArtworkCertificate;
+import com.mcm.mcmoments.artwork.repository.ArtworkCertificateRepository;
 import com.mcm.mcmoments.product.dto.SerialVerifyResponse;
 import com.mcm.mcmoments.product.dto.UserProductCreateRequest;
 import com.mcm.mcmoments.product.dto.UserProductCreateResponse;
@@ -21,6 +23,7 @@ public class ProductService {
     private final ProductSerialRepository productSerialRepository;
     private final UserProductRepository userProductRepository;
     private final UserRepository userRepository;
+    private final ArtworkCertificateRepository artworkCertificateRepository;
 
     public SerialVerifyResponse verifySerial(String serialNumber) {
 
@@ -78,6 +81,22 @@ public class ProductService {
             );
         }
 
+        ArtworkCertificate artwork = artworkCertificateRepository
+                .findById(request.getArtworkId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "아트워크를 찾을 수 없습니다."
+                        )
+                );
+
+        // 시리얼의 상품과 아트워크의 상품이 같은지 확인
+        if (!artwork.getProduct().getId()
+                .equals(serial.getProduct().getId())) {
+            throw new IllegalArgumentException(
+                    "아트워크와 등록하려는 상품이 일치하지 않습니다."
+            );
+        }
+
         UserProduct userProduct = UserProduct.create(
                 user,
                 serial,
@@ -85,6 +104,9 @@ public class ProductService {
         );
 
         userProductRepository.save(userProduct);
+
+        // 최종 등록 시 아트워크와 UserProduct 연결
+        artwork.assignUserProduct(userProduct);
 
         serial.deactivate();
 
