@@ -8,6 +8,8 @@ import VisetosPattern from "../../components/decoration/VisetosPattern"
 import { ARTWORK_URLS } from "../../constants/artworks"
 import { ApiError } from "../../api/client"
 import { pollArtworkStatus, requestArtwork } from "../../api/artwork"
+import { registerProduct } from "../../api/product"
+import type { StoryEmotionCode } from "../../api/types"
 import type { Certificate, Emotion, Product } from "../../types"
 import { formatDate } from "../../utils/date"
 
@@ -15,19 +17,26 @@ type Phase = "loading" | "success" | "fail"
 
 export default function CertificateStepScreen({
   product,
+  purchaseDate,
   story,
   emotions,
-  userProductId,
   onNext,
   onBack,
 }: {
   product: Product
+  purchaseDate: string
   story: string
   emotions: Emotion[]
-  userProductId: number
   onNext: () => void
   onBack: () => void
 }) {
+  const emotionCodes: Record<Emotion, StoryEmotionCode> = {
+    "기쁨": "JOY",
+    "자부심": "PRIDE",
+    "설렘": "EXCITEMENT",
+    "감사": "GRATITUDE",
+  }
+
   const [phase, setPhase] = useState<Phase>("loading")
   const [cert, setCert] = useState<Certificate | null>(null)
   const [errorMessage, setErrorMessage] = useState("")
@@ -42,13 +51,23 @@ export default function CertificateStepScreen({
 
     ;(async () => {
       try {
-        const { artworkId } = await requestArtwork(userProductId)
+        const { artworkId } = await requestArtwork(product.id, story)
 
         const result = await pollArtworkStatus(artworkId, { signal })
 
         if (signal.cancelled) return
 
         if (result.status === "COMPLETED" && result.artworkUrl) {
+          await registerProduct({
+            serialNumber: product.serial,
+            purchaseDate,
+            artworkId,
+            storyContent: story,
+            emotions: emotions.map((emotion) => emotionCodes[emotion]),
+          })
+
+          if (signal.cancelled) return
+
           const now = new Date()
           setCert({
             product,

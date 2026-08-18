@@ -11,13 +11,14 @@ import type {
 
 // ART-001: 구매 사연과 제품 정보를 기반으로 AI 아트워크 생성 요청
 export async function requestArtwork(
-  userProductId: number,
+  productId: number,
+  storyContent: string,
 ): Promise<RequestArtworkResponse> {
-  if (USE_MOCK) return mockRequestArtwork(userProductId)
+  if (USE_MOCK) return mockRequestArtwork(productId)
 
   return apiRequest<RequestArtworkResponse>(
-    `/api/v1/user-products/${userProductId}/artworks`,
-    { method: "POST" },
+    `/api/v1/products/${productId}/artworks`,
+    { method: "POST", body: { storyContent } },
   )
 }
 

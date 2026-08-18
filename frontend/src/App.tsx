@@ -31,7 +31,7 @@ export default function App() {
 
   const [product, setProduct] = useState<Product | null>(null)
 
-  const [userProductId, setUserProductId] = useState<number | null>(null)
+  const [purchaseDate, setPurchaseDate] = useState("")
 
   const [story, setStory] = useState("")
 
@@ -111,19 +111,18 @@ export default function App() {
         {isAuthenticated && screen === "step1" && (
           <ProductStepScreen
             onBack={() => go("home")}
-            onNext={(nextProduct, nextUserProductId) => {
+            onNext={(nextProduct, nextPurchaseDate) => {
               setProduct(nextProduct)
 
-              setUserProductId(nextUserProductId)
+              setPurchaseDate(nextPurchaseDate)
 
               go("step2")
             }}
           />
         )}
 
-        {isAuthenticated && screen === "step2" && userProductId !== null && (
+        {isAuthenticated && screen === "step2" && product && (
           <StoryStepScreen
-            userProductId={userProductId}
             onBack={() => go("step1")}
             onNext={(nextStory, nextEmotions) => {
               setStory(nextStory)
@@ -137,13 +136,12 @@ export default function App() {
 
         {isAuthenticated &&
           screen === "step3" &&
-          product &&
-          userProductId !== null && (
+          product && (
             <CertificateStepScreen
               product={product}
+              purchaseDate={purchaseDate}
               story={story}
               emotions={emotions}
-              userProductId={userProductId}
               onBack={() => go("step2")}
               onNext={() => go("recommendations")}
             />
@@ -151,7 +149,6 @@ export default function App() {
 
         {isAuthenticated && screen === "recommendations" && (
           <RecommendationsScreen
-            onBack={() => go("step3")}
             onCollection={() => go("collection")}
           />
         )}

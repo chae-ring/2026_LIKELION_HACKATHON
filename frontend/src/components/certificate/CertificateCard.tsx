@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import type { Certificate } from "../../types"
 import VisetosPattern from "../decoration/VisetosPattern"
 
@@ -164,8 +164,6 @@ export default function CertificateCard({
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  opacity: 0.75,
-                  mixBlendMode: "luminosity",
                 }}
               />
               <div

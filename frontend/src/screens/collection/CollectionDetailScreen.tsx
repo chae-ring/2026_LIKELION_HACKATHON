@@ -211,7 +211,7 @@ export default function CollectionDetailScreen({
               ["모델", cert.product.model],
               ["컬러", cert.product.color],
               ["카테고리", cert.product.category],
-              ["시리얼", `····${cert.product.serial.slice(-4)}`],
+              ["시리얼", cert.product.serial],
               ["등록일", cert.createdAt],
             ].map(([k, v]) => (
               <div key={k}>
