@@ -6,25 +6,25 @@ let mockArtworkSeq = 1
 
 const jobStore = new Map<
   number,
-  { userProductId: number; startedAt: number; willSucceed: boolean }
+  { productId: number; startedAt: number; willSucceed: boolean }
 >()
 
 export async function mockRequestArtwork(
-  userProductId: number,
+  productId: number,
 ): Promise<RequestArtworkResponse> {
   await wait(400)
 
   const artworkId = mockArtworkSeq++
 
   jobStore.set(artworkId, {
-    userProductId,
+    productId,
     startedAt: Date.now(),
     willSucceed: Math.random() < 0.9, // 명세서 지표: 생성 성공률 90% 이상
   })
 
   return {
     artworkId,
-    userProductId,
+    productId,
     status: "PENDING",
     createdAt: new Date().toISOString(),
   }
@@ -44,7 +44,7 @@ export async function mockGetArtworkStatus(
   const elapsed = Date.now() - job.startedAt
   const base = {
     artworkId,
-    userProductId: job.userProductId,
+    productId: job.productId,
     createdAt: new Date(job.startedAt).toISOString(),
   }
 

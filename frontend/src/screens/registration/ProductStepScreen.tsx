@@ -6,7 +6,7 @@ import StepIndicator from "../../components/common/StepIndicator"
 
 import TopBar from "../../components/common/TopBar"
 
-import { registerProduct, verifySerial } from "../../api/product"
+import { verifySerial } from "../../api/product"
 
 import { ApiError } from "../../api/client"
 
@@ -21,7 +21,7 @@ export default function ProductStepScreen({
 }: {
   onBack: () => void
 
-  onNext: (product: Product, userProductId: number) => void
+  onNext: (product: Product, purchaseDate: string) => void
 }) {
   const [serial, setSerial] = useState("")
 
@@ -35,7 +35,6 @@ export default function ProductStepScreen({
 
   const [checking, setChecking] = useState(false)
 
-  const [registering, setRegistering] = useState(false)
 
   const handleCheck = async () => {
     setTouched(true)
@@ -93,7 +92,7 @@ export default function ProductStepScreen({
     }
   }
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (!confirmed) return
 
     if (!purchaseDate) {
@@ -102,27 +101,9 @@ export default function ProductStepScreen({
       return
     }
 
-    setRegistering(true)
-
     setError("")
 
-    try {
-      const res = await registerProduct({
-        serialNumber: confirmed.serial,
-
-        purchaseDate,
-      })
-
-      onNext(confirmed, res.userProductId)
-    } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "제품 등록 중 오류가 발생했습니다.",
-      )
-    } finally {
-      setRegistering(false)
-    }
+    onNext(confirmed, purchaseDate)
   }
 
   return (
@@ -495,8 +476,8 @@ export default function ProductStepScreen({
           </PrimaryButton>
         )}
         {confirmed && (
-          <PrimaryButton onClick={handleNext} disabled={registering}>
-            {registering ? "등록 중..." : "다음 단계로"}
+          <PrimaryButton onClick={handleNext}>
+            다음 단계로
           </PrimaryButton>
         )}
       </div>
