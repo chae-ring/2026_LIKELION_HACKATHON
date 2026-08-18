@@ -4,7 +4,10 @@ import {
   mockGetArtworkStatus,
   mockRequestArtwork,
 } from "./mock/artwork.mock"
-import type { ArtworkStatusResponse, RequestArtworkResponse } from "./types"
+import type {
+  ArtworkStatusResponse,
+  RequestArtworkResponse,
+} from "./types"
 
 // ART-001: 구매 사연과 제품 정보를 기반으로 AI 아트워크 생성 요청
 export async function requestArtwork(
@@ -28,22 +31,23 @@ export async function getArtworkStatus(
     `/api/v1/artworks/${artworkId}`,
   )
 
-  // 백엔드는 완료 시 "/api/v1/artworks/5/image" 같은 상대경로를 주기 때문에
-  // <img src>에 바로 쓸 수 있게 서버 주소를 붙여줌.
   return { ...res, artworkUrl: resolveAssetUrl(res.artworkUrl) }
 }
 
 interface PollOptions {
   intervalMs?: number
-  timeoutMs?: number
   signal?: { cancelled: boolean }
+  onTick?: (elapsedMs: number) => void
 }
 
-// COMPLETED 또는 FAILED가 나올 때까지 반복 조회.
-// 30초 안에 안 끝나면 TIMEOUT 에러 (기획서 리스크 대응: 30초 타임아웃).
+// COMPLETED 또는 FAILED가 나올 때까지 계속 반복 조회.
+// 백엔드는 @Async로 별도 스레드에서 계속 작업하기 때문에, 프론트가
+// 특정 시간에 임의로 포기하면 실제로는 진행 중인 작업을 실패로
+// 잘못 처리하게 됨. 그래서 강제 타임아웃 없이 끝까지 기다리고,
+// 대신 signal.cancelled로 사용자가 직접 중단(대체 아트워크 등)할 수 있게 함.
 export async function pollArtworkStatus(
   artworkId: number,
-  { intervalMs = 1500, timeoutMs = 30000, signal }: PollOptions = {},
+  { intervalMs = 1500, signal, onTick }: PollOptions = {},
 ): Promise<ArtworkStatusResponse> {
   const startedAt = Date.now()
 
@@ -58,12 +62,7 @@ export async function pollArtworkStatus(
       return res
     }
 
-    if (Date.now() - startedAt > timeoutMs) {
-      throw new ApiError(
-        "아트워크 생성이 30초 내에 완료되지 않았습니다.",
-        "TIMEOUT",
-      )
-    }
+    onTick?.(Date.now() - startedAt)
 
     await wait(intervalMs)
   }
