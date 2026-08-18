@@ -268,7 +268,7 @@ export default function CertificateCard({
                       fontFamily: "monospace",
                     }}
                   >
-                    ····{cert.product.serial.slice(-4)}
+                    {cert.product.serial}
                   </p>
                 </div>
               </div>
