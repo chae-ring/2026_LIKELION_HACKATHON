@@ -42,14 +42,9 @@ export default function CertificateStepScreen({
 
     ;(async () => {
       try {
-        // ART-001: 아트워크 생성 요청
         const { artworkId } = await requestArtwork(userProductId)
 
-        // ART-002: 상태 폴링 (30초 타임아웃 포함)
-        const result = await pollArtworkStatus(artworkId, {
-          timeoutMs: 30000,
-          signal,
-        })
+        const result = await pollArtworkStatus(artworkId, { signal })
 
         if (signal.cancelled) return
 
@@ -89,7 +84,6 @@ export default function CertificateStepScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 기획서 리스크 대응: 실패 시 사전 생성된 대체 아트워크로 진행
   const useFallbackArtwork = () => {
     const now = new Date()
     setCert({
