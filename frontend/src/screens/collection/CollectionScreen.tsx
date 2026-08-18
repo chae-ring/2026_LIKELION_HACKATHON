@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import TopBar from "../../components/common/TopBar"
-import { ApiError } from "../../api/client"
+import { ApiError, resolveAssetUrl } from "../../api/client"
 import { getCollectionList } from "../../api/collection"
 import type { CollectionListItem } from "../../api/types"
 
@@ -244,17 +244,32 @@ export default function CollectionScreen({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  position: "relative",
                 }}
               >
-                <span
+                <div
                   style={{
-                    fontFamily: "Playfair Display, serif",
-                    fontSize: 28,
-                    color: "var(--gold)",
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(0,0,0,0.3)",
                   }}
                 >
-                  ✦
-                </span>
+                  <img
+                    src={resolveAssetUrl(
+                      `/api/v1/artworks/${item.artworkId}/image`,
+                    )}
+                    alt={item.productName}
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none"
+                    }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
               </div>
               <p
                 style={{
