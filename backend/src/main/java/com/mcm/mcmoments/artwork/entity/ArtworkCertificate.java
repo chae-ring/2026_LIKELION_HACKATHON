@@ -1,5 +1,6 @@
 package com.mcm.mcmoments.artwork.entity;
 
+import com.mcm.mcmoments.product.entity.Product;
 import com.mcm.mcmoments.product.entity.UserProduct;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -12,15 +13,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(
-        name = "artwork_certificates",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_artwork_certificates_user_product_id",
-                        columnNames = "user_product_id"
-                )
-        }
-)
+@Table(name = "artwork_certificates")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ArtworkCertificate {
@@ -29,8 +22,14 @@ public class ArtworkCertificate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_product_id", nullable = false)
+    // 아트워크 생성 시점에는 Product만 존재
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    // 최종 저장하기 전까지는 null 가능
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_product_id")
     private UserProduct userProduct;
 
     @Column(name = "artwork_url", columnDefinition = "TEXT")
@@ -48,19 +47,27 @@ public class ArtworkCertificate {
     private LocalDateTime createdAt;
 
     private ArtworkCertificate(
-            UserProduct userProduct,
+            Product product,
             String prompt
     ) {
-        this.userProduct = userProduct;
+        this.product = product;
         this.prompt = prompt;
         this.status = ArtworkStatus.PENDING;
     }
 
     public static ArtworkCertificate create(
-            UserProduct userProduct,
+            Product product,
             String prompt
     ) {
-        return new ArtworkCertificate(userProduct, prompt);
+        return new ArtworkCertificate(
+                product,
+                prompt
+        );
+    }
+
+    // UserProduct 최종 등록 후 Artwork와 연결
+    public void assignUserProduct(UserProduct userProduct) {
+        this.userProduct = userProduct;
     }
 
     public void complete(String artworkUrl) {

@@ -7,20 +7,31 @@ import java.time.LocalDateTime;
 
 public record ArtworkResponse(
         Long artworkId,
-        Long userProductId,
+        Long productId,
         ArtworkStatus status,
         String artworkUrl,
         LocalDateTime createdAt
 ) {
-    public static ArtworkResponse from(ArtworkCertificate artwork) {
+
+    public static ArtworkResponse from(
+            ArtworkCertificate artwork
+    ) {
+
         String artworkUrl = artwork.getArtworkUrl();
-        if (artwork.getStatus() == ArtworkStatus.COMPLETED && artworkUrl != null && !artworkUrl.isBlank()) {
-            artworkUrl = "/api/v1/artworks/" + artwork.getId() + "/image";
+
+        if (artwork.getStatus() == ArtworkStatus.COMPLETED
+                && artworkUrl != null
+                && !artworkUrl.isBlank()) {
+
+            artworkUrl =
+                    "/api/v1/artworks/"
+                            + artwork.getId()
+                            + "/image";
         }
 
         return new ArtworkResponse(
                 artwork.getId(),
-                artwork.getUserProduct().getId(),
+                artwork.getProduct().getId(),
                 artwork.getStatus(),
                 artworkUrl,
                 artwork.getCreatedAt()
