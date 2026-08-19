@@ -37,29 +37,59 @@ public class ProductService {
     private final PurchaseStoryRepository purchaseStoryRepository;
     private final StoryEmotionRepository storyEmotionRepository;
 
+    /**
+     * 시리얼 번호 검증
+     */
     public SerialVerifyResponse verifySerial(String serialNumber) {
 
         ProductSerial serial = productSerialRepository
                 .findBySerialNumber(serialNumber)
                 .orElse(null);
 
+        // 1. 존재하지 않는 시리얼
         if (serial == null) {
-            return SerialVerifyResponse.invalid();
+            return SerialVerifyResponse.invalid(
+                    "존재하지 않는 시리얼 번호입니다."
+            );
         }
 
-        if (!serial.isActive()) {
-            return SerialVerifyResponse.invalid();
-        }
+        /*
+         * 중요:
+         * 등록이 완료되면 아래 registerProduct()에서
+         * serial.deactivate()를 호출하기 때문에
+         *
+         * 이미 등록된 시리얼은
+         * 1) user_products에도 존재하고
+         * 2) isActive도 false인 상태가 됨
+         *
+         * 따라서 existsBySerial_Id 검사를
+         * isActive 검사보다 먼저 해야
+         * "이미 등록된 시리얼"로 정확히 구분 가능
+         */
 
+        // 2. 이미 사용자에게 등록된 시리얼
         if (userProductRepository.existsBySerial_Id(serial.getId())) {
-            return SerialVerifyResponse.invalid();
+            return SerialVerifyResponse.invalid(
+                    "이미 등록된 시리얼 번호입니다."
+            );
         }
 
+        // 3. DB에는 있지만 현재 사용할 수 없는 시리얼
+        if (!serial.isActive()) {
+            return SerialVerifyResponse.invalid(
+                    "등록할 수 없는 시리얼 번호입니다."
+            );
+        }
+
+        // 4. 등록 가능
         return SerialVerifyResponse.valid(
                 serial.getProduct()
         );
     }
 
+    /**
+     * 사용자 제품 최종 등록
+     */
     @Transactional
     public UserProductCreateResponse registerProduct(
             Long userId,
@@ -83,15 +113,20 @@ public class ProductService {
                         )
                 );
 
-        if (!serial.isActive()) {
-            throw new IllegalArgumentException(
-                    "등록할 수 없는 시리얼 번호입니다."
-            );
-        }
-
+        /*
+         * verifySerial()과 동일하게
+         * 이미 등록 여부를 먼저 검사
+         */
         if (userProductRepository.existsBySerial_Id(serial.getId())) {
             throw new IllegalArgumentException(
                     "이미 등록된 시리얼 번호입니다."
+            );
+        }
+
+        // 비활성화된 시리얼
+        if (!serial.isActive()) {
+            throw new IllegalArgumentException(
+                    "등록할 수 없는 시리얼 번호입니다."
             );
         }
 
@@ -104,21 +139,21 @@ public class ProductService {
                         )
                 );
 
-        // 4. 아트워크 생성이 완료됐는지 확인
+        // 4. 아트워크 생성 완료 여부 확인
         if (artwork.getStatus() != ArtworkStatus.COMPLETED) {
             throw new IllegalArgumentException(
                     "완료된 아트워크만 등록할 수 있습니다."
             );
         }
 
-        // 5. 이미 다른 UserProduct에 연결된 Artwork인지 확인
+        // 5. 이미 다른 UserProduct에 연결된 아트워크인지 확인
         if (artwork.getUserProduct() != null) {
             throw new IllegalArgumentException(
                     "이미 등록된 아트워크입니다."
             );
         }
 
-        // 6. 시리얼의 상품과 아트워크의 상품이 같은지 확인
+        // 6. 시리얼 상품과 아트워크 상품 일치 여부 확인
         if (!artwork.getProduct().getId()
                 .equals(serial.getProduct().getId())) {
 
@@ -136,7 +171,7 @@ public class ProductService {
             );
         }
 
-        // 8. UserProduct 최종 생성
+        // 8. UserProduct 생성
         UserProduct userProduct = UserProduct.create(
                 user,
                 serial,
@@ -177,6 +212,8 @@ public class ProductService {
         // 12. 사용한 시리얼 비활성화
         serial.deactivate();
 
-        return UserProductCreateResponse.from(userProduct);
+        return UserProductCreateResponse.from(
+                userProduct
+        );
     }
 }
