@@ -149,15 +149,13 @@ After Care
 
 ## 03. 화면 구성
 
-> 실제 서비스 화면 또는 GIF 추가 예정
-
-| Home   | Product Registration | Story  |
-| ------ | -------------------- | ------ |
-| 이미지 추가 | 이미지 추가               | 이미지 추가 |
+| Home | Product Registration | Story |
+| :---: | :------------------: | :---: |
+| <img src="./docs/images/home.png" width="300" alt="MCMoments Home"/> | <img src="./docs/images/register.png" width="300" alt="MCMoments Product Registration"/> | <img src="./docs/images/story.png" width="300" alt="MCMoments Story"/> |
 
 | Artwork | My Collection | Recommendation |
-| ------- | ------------- | -------------- |
-| 이미지 추가  | 이미지 추가        | 이미지 추가         |
+| :-----: | :-----------: | :------------: |
+| <img src="./docs/images/artwork.JPG" width="300" alt="MCMoments Artwork"/> | <img src="./docs/images/collections.png" width="300" alt="MCMoments Collection"/> | <img src="./docs/images/recommendation.png" width="300" alt="MCMoments Recommendation"/> |
 
 ---
 
