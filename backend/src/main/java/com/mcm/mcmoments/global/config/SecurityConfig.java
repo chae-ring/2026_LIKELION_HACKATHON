@@ -40,7 +40,11 @@ public class SecurityConfig {
                                         "/api/v1/auth/**",
                                         "/oauth2/**",
                                         "/login/**",
-                                        "/error"
+                                        "/error",
+
+                                        // 아트워크 이미지 조회는 img 태그에서
+                                        // Authorization 헤더를 붙일 수 없으므로 공개
+                                        "/api/v1/artworks/*/image"
                                 )
                                 .permitAll()
 
