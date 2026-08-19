@@ -26,7 +26,7 @@ public class StoryController {
      */
     @PostMapping("/{userProductId}/story")
     public ResponseEntity<StoryCreateResponse> createStory(
-            @PathVariable Long userProductId,
+            @PathVariable("userProductId") Long userProductId,
             @RequestBody StoryCreateRequest request
     ) {
 
