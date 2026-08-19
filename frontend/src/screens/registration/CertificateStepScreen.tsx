@@ -31,11 +31,23 @@ export default function CertificateStepScreen({
   onBack: () => void
 }) {
   const emotionCodes: Record<Emotion, StoryEmotionCode> = {
-    "기쁨": "JOY",
-    "자부심": "PRIDE",
-    "설렘": "EXCITEMENT",
-    "감사": "GRATITUDE",
-  }
+  "기쁨": "JOY",
+  "자부심": "PRIDE",
+  "설렘": "EXCITEMENT",
+  "감사": "GRATITUDE",
+  "행복": "HAPPINESS", 
+  "만족": "SATISFACTION",
+  "애정": "LOVE",
+  "애착": "AFFECTION",
+  "추억": "NOSTALGIA",
+  "편안함": "COMFORT",
+  "자신감": "CONFIDENCE",
+  "성취감": "ACHIEVEMENT",
+  "안도감": "RELIEF",
+  "놀라움": "SURPRISE",
+  "기대감": "ANTICIPATION",
+  "뭉클함": "SENTIMENTAL",
+}
 
   const [phase, setPhase] = useState<Phase>("loading")
   const [cert, setCert] = useState<Certificate | null>(null)
