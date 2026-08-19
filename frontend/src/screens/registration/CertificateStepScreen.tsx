@@ -146,14 +146,18 @@ export default function CertificateStepScreen({
           style={{
             margin: 0,
             fontFamily: "Playfair Display, serif",
-            fontSize: 26,
+            fontSize: 22,
             fontWeight: 500,
             color: "var(--brown)",
             lineHeight: 1.3,
           }}
         >
           {phase === "loading" && "아트워크를\n생성하고 있어요"}
-          {phase === "success" && "당신의 아트워크가\n완성되었습니다"}
+          {phase === "success" && (
+  <>
+    당신의 아트워크가 완성되었습니다
+  </>
+)}
           {phase === "fail" && "아트워크 생성에\n문제가 생겼어요"}
         </h2>
       </div>
@@ -264,7 +268,7 @@ export default function CertificateStepScreen({
                 gap: 10,
               }}
             >
-              <span style={{ fontSize: 16 }}>✅</span>
+
               <p
                 style={{
                   margin: 0,

@@ -95,7 +95,7 @@ export default function StoryStepScreen({
 
             fontFamily: "Playfair Display, serif",
 
-            fontSize: 26,
+            fontSize: 22,
 
             fontWeight: 500,
 
@@ -104,11 +104,7 @@ export default function StoryStepScreen({
             lineHeight: 1.3,
           }}
         >
-          이 제품을
-          <br />
-          선택한 순간을
-          <br />
-          들려주세요
+          이 제품을 선택한 순간을 들려주세요
         </h2>
       </div>
 
@@ -122,7 +118,7 @@ export default function StoryStepScreen({
 
               setError("")
             }}
-            placeholder="졸업 선물로 스스로에게 처음 선물한 가방이에요. 오랫동안 모아온 돈으로 구입한 순간, 말로 표현할 수 없는 뿌듯함이 밀려왔습니다..."
+            placeholder="졸업 선물로 스스로에게 처음 선물한 가방이에요. 오랫동안 모아온 돈으로 구입한 순간, 말로 표현할 수 없는 뿌듯함이 밀려왔습니다!"
             rows={6}
             style={{
               width: "100%",
