@@ -406,7 +406,7 @@ main
 ## 14. Documentation
 
 프로젝트의 상세 설계 및 개발 문서는 Notion에서 관리하고 있습니다. 
-[MCMoments Notion 바로가기](노션_링크)
+[MCMoments Notion](https://rural-pint-aeb.notion.site/Documents-3c15855575d780489227c26c5d9363f6?source=copy_link)
 
 - API Specification
 - ERD
