@@ -286,7 +286,7 @@ export default function ProductStepScreen({
             <img
               src={confirmed.imageUrl}
               alt={confirmed.name}
-              style={{ width: "100%", height: 180, objectFit: "cover" }}
+              style={{ width: "100%", height: 180, objectFit: "contain" }}
             />
             <div style={{ padding: "16px 18px" }}>
               <p
