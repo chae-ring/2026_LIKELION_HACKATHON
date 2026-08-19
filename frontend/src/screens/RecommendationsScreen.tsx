@@ -76,9 +76,7 @@ export default function RecommendationsScreen({
             lineHeight: 1.3,
           }}
         >
-          당신을 위한
-          <br />
-          다음 MCM
+          당신을 위한 다음 MCM
         </h2>
         <p
           style={{
