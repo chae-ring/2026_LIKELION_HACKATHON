@@ -25,7 +25,8 @@ public class ArtworkController {
     ) {
         return artworkService.requestGeneration(
                 productId,
-                request.storyContent()
+                request.storyContent(),
+                request.emotions()
         );
     }
 
