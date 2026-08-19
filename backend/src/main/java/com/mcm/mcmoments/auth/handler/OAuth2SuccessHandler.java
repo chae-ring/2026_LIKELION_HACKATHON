@@ -81,7 +81,7 @@ public class OAuth2SuccessHandler
          * 배포된 프론트 주소
          */
         String redirectUrl =
-                "https://bruce-plumbing-laugh-guarantee.trycloudflare.com"
+                "https://maintains-hunter-powerseller-particular.trycloudflare.com"
                         + "/?accessToken="
                         + encodedToken
                         + "&userId="
