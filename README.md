@@ -155,7 +155,7 @@ After Care
 
 | Artwork | My Collection | Recommendation |
 | :-----: | :-----------: | :------------: |
-| <img src="./docs/images/artwork.JPG" width="300" alt="MCMoments Artwork"/> | <img src="./docs/images/collections.png" width="300" alt="MCMoments Collection"/> | <img src="./docs/images/recommendation.png" width="300" alt="MCMoments Recommendation"/> |
+| <img src="./docs/images/artwork.png" width="300" alt="MCMoments Artwork"/> | <img src="./docs/images/collections.png" width="300" alt="MCMoments Collection"/> | <img src="./docs/images/recommendation.png" width="300" alt="MCMoments Recommendation"/> |
 
 ---
 
@@ -244,7 +244,7 @@ After Care
 
 ## 08. ERD
 
-> ERD 이미지 추가 예정
+<img src="./docs/images/erd.png" width="700" alt="ERD"/>
 
 ### 주요 테이블
 
@@ -405,7 +405,8 @@ main
 
 ## 14. Documentation
 
-프로젝트의 상세 설계 및 개발 문서는 Notion에서 관리하고 있습니다. [MCMoments Notion 바로가기](노션_링크)
+프로젝트의 상세 설계 및 개발 문서는 Notion에서 관리하고 있습니다. 
+[MCMoments Notion 바로가기](노션_링크)
 
 - API Specification
 - ERD
