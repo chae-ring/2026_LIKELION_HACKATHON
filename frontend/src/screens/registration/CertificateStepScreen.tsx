@@ -51,7 +51,11 @@ export default function CertificateStepScreen({
 
     ;(async () => {
       try {
-        const { artworkId } = await requestArtwork(product.id, story)
+        const { artworkId } = await requestArtwork(
+          product.id,
+          story,
+          emotions.map((emotion) => emotionCodes[emotion]),
+        )
 
         const result = await pollArtworkStatus(artworkId, { signal })
 

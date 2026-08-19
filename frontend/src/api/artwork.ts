@@ -7,18 +7,20 @@ import {
 import type {
   ArtworkStatusResponse,
   RequestArtworkResponse,
+  StoryEmotionCode,
 } from "./types"
 
 // ART-001: 구매 사연과 제품 정보를 기반으로 AI 아트워크 생성 요청
 export async function requestArtwork(
   productId: number,
   storyContent: string,
+  emotions: StoryEmotionCode[] = [],
 ): Promise<RequestArtworkResponse> {
   if (USE_MOCK) return mockRequestArtwork(productId)
 
   return apiRequest<RequestArtworkResponse>(
     `/api/v1/products/${productId}/artworks`,
-    { method: "POST", body: { storyContent } },
+    { method: "POST", body: { storyContent, emotions } },
   )
 }
 

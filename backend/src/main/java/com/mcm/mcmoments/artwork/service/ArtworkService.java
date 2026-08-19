@@ -5,6 +5,7 @@ import com.mcm.mcmoments.artwork.entity.ArtworkCertificate;
 import com.mcm.mcmoments.artwork.repository.ArtworkCertificateRepository;
 import com.mcm.mcmoments.product.entity.Product;
 import com.mcm.mcmoments.product.repository.ProductRepository;
+import com.mcm.mcmoments.story.entity.Emotion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,6 +20,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Base64;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +34,8 @@ public class ArtworkService {
     @Transactional
     public ArtworkResponse requestGeneration(
             Long productId,
-            String storyContent
+            String storyContent,
+            List<Emotion> emotions
     ) {
 
         Product product = productRepository.findById(productId)
@@ -49,7 +52,8 @@ public class ArtworkService {
 
         String prompt = artworkPromptFactory.create(
                 product,
-                storyContent
+                storyContent,
+                emotions
         );
 
         ArtworkCertificate artwork =
