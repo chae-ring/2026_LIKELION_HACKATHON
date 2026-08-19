@@ -64,7 +64,7 @@ export default function CertificateStepScreen({
         if (result.status === "COMPLETED" && result.artworkUrl) {
           await registerProduct({
             serialNumber: product.serial,
-            purchaseDate,
+            purchaseDate: purchaseDate || null,
             artworkId,
             storyContent: story,
             emotions: emotions.map((emotion) => emotionCodes[emotion]),
