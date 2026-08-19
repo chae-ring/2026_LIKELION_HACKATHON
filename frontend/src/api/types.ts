@@ -3,6 +3,8 @@
 export interface VerifySerialResponse {
   valid: boolean
 
+  message: string
+
   product: {
     id: number
 

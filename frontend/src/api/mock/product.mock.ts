@@ -19,11 +19,16 @@ export async function mockVerifySerial(
   const found = VALID_SERIALS[upper]
 
   if (!found || upper === "MCM9999") {
-    return { valid: false, product: null }
+    return {
+      valid: false,
+      product: null,
+      message: "존재하지 않는 시리얼 번호입니다.",
+    }
   }
 
   return {
     valid: true,
+    message: "등록 가능한 제품입니다.",
     product: {
       id: found.id,
       name: found.name,
