@@ -10,6 +10,7 @@ public class SerialVerifyResponse {
 
     private boolean valid;
     private ProductInfo product;
+    private String message;
 
     public static SerialVerifyResponse valid(Product product) {
         return new SerialVerifyResponse(
@@ -21,14 +22,16 @@ public class SerialVerifyResponse {
                         product.getColor(),
                         product.getCategory(),
                         product.getImageUrl()
-                )
+                ),
+                "등록 가능한 제품입니다."
         );
     }
 
-    public static SerialVerifyResponse invalid() {
+    public static SerialVerifyResponse invalid(String message) {
         return new SerialVerifyResponse(
                 false,
-                null
+                null,
+                message
         );
     }
 
