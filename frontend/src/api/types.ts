@@ -54,8 +54,23 @@ export interface RegisterProductResponse {
 
 // ─── STORY-001: 구매 사연/감정 등록 ──────────────────────────────────
 
-export type StoryEmotionCode = "JOY" | "PRIDE" | "EXCITEMENT" | "GRATITUDE"
-
+export type StoryEmotionCode =
+  | "JOY"
+  | "PRIDE"
+  | "EXCITEMENT"
+  | "GRATITUDE"
+  | "HAPPINESS"
+  | "SATISFACTION"
+  | "LOVE"
+  | "AFFECTION"
+  | "NOSTALGIA"
+  | "COMFORT"
+  | "CONFIDENCE"
+  | "ACHIEVEMENT"
+  | "RELIEF"
+  | "SURPRISE"
+  | "ANTICIPATION"
+  | "SENTIMENTAL"
 export interface SubmitStoryRequest {
   content: string
 
