@@ -26,7 +26,12 @@ export default function StoryStepScreen({
   const [error, setError] = useState("")
 
 
-  const EMOTIONS: Emotion[] = ["기쁨", "자부심", "설렘", "감사"]
+  const EMOTIONS: Emotion[] = [
+  "기쁨", "자부심", "설렘", "감사",
+  "행복", "만족", "애정", "애착",
+  "추억", "편안함", "자신감", "성취감",
+  "안도감", "놀라움", "기대감", "뭉클함",
+]
 
 
   const MAX = 500
