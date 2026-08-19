@@ -57,7 +57,7 @@ export default function ProductStepScreen({
       if (!res.valid || !res.product) {
         setConfirmed(null)
 
-        setError("등록할 수 없는 시리얼 번호입니다.")
+        setError(res.message ?? "등록할 수 없는 시리얼 번호입니다.")
 
         return
       }
@@ -95,11 +95,6 @@ export default function ProductStepScreen({
   const handleNext = () => {
     if (!confirmed) return
 
-    if (!purchaseDate) {
-      setError("구매일을 선택해 주세요.")
-
-      return
-    }
 
     setError("")
 
@@ -418,7 +413,7 @@ export default function ProductStepScreen({
                 textTransform: "uppercase",
               }}
             >
-              구매일
+              구매일 (선택)
             </label>
             <div style={{ marginTop: 8 }}>
               <input

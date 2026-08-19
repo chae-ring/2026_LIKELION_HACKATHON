@@ -3,6 +3,8 @@
 export interface VerifySerialResponse {
   valid: boolean
 
+  message: string
+
   product: {
     id: number
 
@@ -23,7 +25,7 @@ export interface VerifySerialResponse {
 export interface RegisterProductRequest {
   serialNumber: string
 
-  purchaseDate: string
+  purchaseDate: string | null
 
   artworkId: number
 
