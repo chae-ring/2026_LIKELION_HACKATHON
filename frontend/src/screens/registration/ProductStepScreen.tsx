@@ -155,9 +155,7 @@ export default function ProductStepScreen({
             lineHeight: 1.25,
           }}
         >
-          제품을
-          <br />
-          등록해 주세요
+          제품을 등록해 주세요
         </h2>
         <p
           style={{
