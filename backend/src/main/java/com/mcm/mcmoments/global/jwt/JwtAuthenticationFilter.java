@@ -47,7 +47,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
 
-            } catch (Exception ignored) { // 토큰 검증 실패 시 무시하고 다음 필터로 진행, 추후 인증이 필요한 API를 authenticated()로 변경할 예정
+                System.out.println(
+                        "JWT 인증 성공 - userId: " + userId
+                );
+
+            } catch (Exception e) {
+                System.err.println(
+                        "JWT 인증 실패: " + e.getClass().getSimpleName()
+                                + " - " + e.getMessage()
+                );
+
+                e.printStackTrace();
+
+                SecurityContextHolder.clearContext();
             }
         }
 
