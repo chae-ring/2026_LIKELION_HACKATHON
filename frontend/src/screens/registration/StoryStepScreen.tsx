@@ -6,21 +6,15 @@ import StepIndicator from "../../components/common/StepIndicator"
 
 import TopBar from "../../components/common/TopBar"
 
-import { submitStory } from "../../api/story"
-
-import { ApiError } from "../../api/client"
 
 import type { Emotion } from "../../types"
 
 export default function StoryStepScreen({
-  userProductId,
 
   onBack,
 
   onNext,
 }: {
-  userProductId: number
-
   onBack: () => void
 
   onNext: (story: string, emotions: Emotion[]) => void
@@ -31,19 +25,9 @@ export default function StoryStepScreen({
 
   const [error, setError] = useState("")
 
-  const [submitting, setSubmitting] = useState(false)
 
   const EMOTIONS: Emotion[] = ["기쁨", "자부심", "설렘", "감사"]
 
-  const EMOTION_CODES = {
-    기쁨: "JOY",
-
-    자부심: "PRIDE",
-
-    설렘: "EXCITEMENT",
-
-    감사: "GRATITUDE",
-  } as const
 
   const MAX = 500
 
@@ -55,7 +39,7 @@ export default function StoryStepScreen({
     )
   }
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (story.length < MIN) {
       setError(`최소 ${MIN}자 이상 작성해 주세요. (현재 ${story.length}자)`)
 
@@ -68,29 +52,9 @@ export default function StoryStepScreen({
       return
     }
 
-    setSubmitting(true)
-
     setError("")
-
-    try {
-      await submitStory(userProductId, {
-        content: story,
-
-        emotions: emotions.map((emotion) => EMOTION_CODES[emotion]),
-      })
-
-      onNext(story, emotions)
-    } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "구매 사연 등록 중 오류가 발생했습니다.",
-      )
-    } finally {
-      setSubmitting(false)
-    }
+    onNext(story, emotions)
   }
-
   return (
     <div
       className="fade-up"
@@ -131,7 +95,7 @@ export default function StoryStepScreen({
 
             fontFamily: "Playfair Display, serif",
 
-            fontSize: 26,
+            fontSize: 22,
 
             fontWeight: 500,
 
@@ -140,11 +104,7 @@ export default function StoryStepScreen({
             lineHeight: 1.3,
           }}
         >
-          이 제품을
-          <br />
-          선택한 순간을
-          <br />
-          들려주세요
+          이 제품을 선택한 순간을 들려주세요
         </h2>
       </div>
 
@@ -158,7 +118,7 @@ export default function StoryStepScreen({
 
               setError("")
             }}
-            placeholder="졸업 선물로 스스로에게 처음 선물한 가방이에요. 오랫동안 모아온 돈으로 구입한 순간, 말로 표현할 수 없는 뿌듯함이 밀려왔습니다..."
+            placeholder="졸업 선물로 스스로에게 처음 선물한 가방이에요. 오랫동안 모아온 돈으로 구입한 순간, 말로 표현할 수 없는 뿌듯함이 밀려왔습니다!"
             rows={6}
             style={{
               width: "100%",
@@ -280,9 +240,9 @@ export default function StoryStepScreen({
       <div style={{ padding: "24px", marginTop: "auto" }}>
         <PrimaryButton
           onClick={handleNext}
-          disabled={story.length < MIN || submitting}
+          disabled={story.length < MIN}
         >
-          {submitting ? "등록 중..." : "아트워크 만들기"}
+          아트워크 만들기
         </PrimaryButton>
       </div>
     </div>

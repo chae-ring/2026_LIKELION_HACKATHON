@@ -24,6 +24,12 @@ export interface RegisterProductRequest {
   serialNumber: string
 
   purchaseDate: string
+
+  artworkId: number
+
+  storyContent: string
+
+  emotions: StoryEmotionCode[]
 }
 
 export interface RegisterProductResponse {
@@ -75,7 +81,7 @@ export type ArtworkStatus = "PENDING" | "COMPLETED" | "FAILED"
 export interface RequestArtworkResponse {
   artworkId: number
 
-  userProductId: number
+  productId: number
 
   status: ArtworkStatus
 
@@ -85,7 +91,7 @@ export interface RequestArtworkResponse {
 export interface ArtworkStatusResponse {
   artworkId: number
 
-  userProductId: number
+  productId: number
 
   status: ArtworkStatus
 

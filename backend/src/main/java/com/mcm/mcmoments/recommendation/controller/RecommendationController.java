@@ -17,7 +17,7 @@ public class RecommendationController {
 
     // GET /api/v1/users/{userId}/recommendations
     @GetMapping("/users/{userId}/recommendations")
-    public RecommendationListResponse getUserRecommendations(@PathVariable Long userId) {
+    public RecommendationListResponse getUserRecommendations(@PathVariable("userId") Long userId) {
         return recommendationService.getRecommendationsByUserId(userId);
     }
 }

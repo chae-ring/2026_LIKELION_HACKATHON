@@ -20,25 +20,26 @@ public class ArtworkController {
     @PostMapping("/products/{productId}/artworks")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public ArtworkResponse createArtwork(
-            @PathVariable Long productId,
+            @PathVariable("productId") Long productId,
             @RequestBody ArtworkCreateRequest request
     ) {
         return artworkService.requestGeneration(
                 productId,
-                request.storyContent()
+                request.storyContent(),
+                request.emotions()
         );
     }
 
     @GetMapping("/artworks/{artworkId}")
     public ArtworkResponse getArtwork(
-            @PathVariable Long artworkId
+            @PathVariable("artworkId") Long artworkId
     ) {
         return artworkService.getArtwork(artworkId);
     }
 
     @GetMapping("/artworks/{artworkId}/image")
     public ResponseEntity<byte[]> getArtworkImage(
-            @PathVariable Long artworkId
+            @PathVariable("artworkId") Long artworkId
     ) {
 
         ArtworkService.ArtworkImageContent imageContent =

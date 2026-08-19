@@ -8,10 +8,8 @@ import type { ProductRecommendation } from "../api/types"
 
 export default function RecommendationsScreen({
   onCollection,
-  onBack,
 }: {
   onCollection: () => void
-  onBack: () => void
 }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -65,7 +63,7 @@ export default function RecommendationsScreen({
         flexDirection: "column",
       }}
     >
-      <TopBar onBack={onBack} label="추천 상품" />
+      <TopBar label="추천 상품" />
 
       <div style={{ padding: "28px 24px 0" }}>
         <h2
@@ -78,9 +76,7 @@ export default function RecommendationsScreen({
             lineHeight: 1.3,
           }}
         >
-          당신을 위한
-          <br />
-          다음 MCM
+          당신을 위한 다음 MCM
         </h2>
         <p
           style={{
