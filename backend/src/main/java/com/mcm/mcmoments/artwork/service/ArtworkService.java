@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -59,8 +61,15 @@ public class ArtworkService {
         ArtworkCertificate savedArtwork =
                 artworkRepository.saveAndFlush(artwork);
 
-        artworkGenerationProcessor.generate(
-                savedArtwork.getId()
+        // 트랜잭션이 커밋되기 전에 비동기 생성 스레드가 먼저 조회를 시도하면
+        // NoSuchElementException이 발생하므로, 커밋 완료 후에만 실행되도록 등록한다.
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        artworkGenerationProcessor.generate(savedArtwork.getId());
+                    }
+                }
         );
 
         return ArtworkResponse.from(savedArtwork);
