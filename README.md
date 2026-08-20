@@ -34,6 +34,7 @@
 `2026.08.09 ~ 2026.08.19`
 
 ### 배포 주소
+https://maintains-hunter-powerseller-particular.trycloudflare.com
 
 ---
 
@@ -161,7 +162,7 @@ After Care
 
 ## 04. User Flow
 
-<img src="./docs/images/userFlow.png" width="1200" alt="USERFLOW"/>
+<img src="./docs/images/userFlow.png" width="1500" alt="USERFLOW"/>
 
 ---
 
@@ -193,7 +194,7 @@ After Care
 
 ### Design & Collaboration
 
-<img src="https://img.shields.io/badge/Figma-F24E1E?style=flat-square&logo=figma&logoColor=white"/> <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white"/> <img src="https://img.shields.io/badge/Notion-000000?style=flat-square&logo=notion&logoColor=white"/>
+<img src="https://img.shields.io/badge/Figma-F24E1E?style=flat-square&logo=figma&logoColor=white"/> <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white"/> <img src="https://img.shields.io/badge/Notion-000000?style=flat-square&logo=notion&logoColor=white"/> <img src="https://img.shields.io/badge/Manyfast-6C5CE7?style=flat-square&logoColor=white"/>
 
 ---
 
@@ -339,11 +340,11 @@ AI_API_KEY=
 
 | 이름 | 역할       | 담당                      |
 | -- | -------- | ----------------------- |
-| 채린 | Backend  | Authentication, Product |
-| 준수 | Backend  | Artwork, Recommendation |
-| 재원 | Backend  | Collection              |
-| 추가 | Frontend | 추가                      |
-| 추가 | Frontend | 추가                      |
+| 여채린 | Backend  | Authentication, Product |
+| 김준수 | Backend  | Artwork, Recommendation |
+| 정재원 | Backend  | Collection              |
+| 이효빈 | Frontend | 상품 등록 및 아트워크 생성 UI  |
+| 임수종 | Frontend | 컬렉션 등록 및 조회 UI |
 
 ---
 
