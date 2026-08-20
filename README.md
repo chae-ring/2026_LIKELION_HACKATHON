@@ -199,6 +199,7 @@ After Care
 ---
 
 ## 06. System Architecture
+  <img src="./docs/images/architecture.png" width="1300" alt="MCMoments architecture"/>
 
 ---
 
